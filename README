@@ -1,0 +1,181 @@
+Argentino Roca Unix Utilities
+=============================
+
+ARUU is a unified fork of sbase and ubase, it is an effort trying to
+complete SBASE & UBASE., new utils partially based on toybox have
+been added, specifically, the utils under cmd/net are partially based
+on their toybox applet equivalent.
+
+OVERVIEW
+========
+
+aruu builds two things:
+
+  1. individual tool binaries (default 'make all')
+  2. aruu-box: a multi-call binary containing every tool ('make box')
+
+The multi-call binary is built by scripts/mkbox. It uses objcopy to
+rename each tool's 'main' symbol, generates a C dispatch table, then
+links everything into a single statically-dispatched binary. Invoke
+tools by symlinking aruu-box to the tool name, or by running:
+
+    aruu-box <command> [args...]
+
+To install symlinks into a directory:
+
+    aruu-box -i /usr/local/bin
+
+REQUIREMENTS
+============
+
+  cc       POSIX.1-2008-compliant C compiler (pcc, etc)
+  make     POSIX make (pdpmake, gmake, bmake)
+  ar       archive tool
+  ranlib   archive indexer
+  objcopy  for 'make box' only
+
+Optional:
+
+  yacc     only needed if rebuilding bc from bc.y
+
+BUILDING
+========
+
+Build all individual tools:
+
+    make
+
+Build the multi-call binary:
+
+    make box
+
+Both targets can be combined:
+
+    make all box
+
+Configuration is in config.mk. Override compiler and flags:
+
+    make CC=musl-gcc CFLAGS='-Os -static'
+
+Override install prefix:
+
+    make PREFIX=/usr install
+
+INSTALL
+=======
+
+    make install           installs individual tools to $(PREFIX)/bin
+    aruu-box -i /usr/bin   installs symlinks for the box binary
+
+SOURCE LAYOUT
+=============
+
+    config.mk              build configuration
+    Makefile               pdpmake-compatible build rules
+    scripts/
+      mkbox                builds aruu-box from compiled tool objects
+      getconf.sh           generates cmd/posix/getconf.h at build time
+    shared/
+      *.h                  project headers (util.h, arg.h, utf.h, ...)
+      libutil/             utility library (eprintf, ealloc, recurse, ...)
+      libutf/              UTF-8/rune library
+    cmd/
+      posix/               POSIX.1-2008 tools (cat, ls, grep, sed, ...)
+      posix/make/          POSIX make implementation
+      linux/               Linux-specific tools (mount, dmesg, insmod, ...)
+      net/                 networking tools (wget, ping, nc, ifconfig, ...)
+      pseudo/              widely-used non-POSIX tools (tar, stat, seq, ...)
+      xsi/                 XSI-extension tools (mknod, su, passwd)
+
+TOOLS
+=====
+
+posix: [, basename, cal, cat, chgrp, chmod, chown, cksum, cmp, comm,
+       cp, cut, date, dd, df, dirname, du, echo, ed, env, expand,
+       expr, false, find, fold, getconf, grep, head, id, join, kill,
+       link, ln, logger, logname, ls, mesg, mkdir, mkfifo, mv, nice,
+       nl, nohup, od, paste, pathchk, printf, ps, pwd, readlink,
+       renice, rm, rmdir, sed, sleep, sort, split, tail, tee, test,
+       time, touch, tr, true, tsort, tty, uname, unexpand, uniq,
+       unlink, uudecode, uuencode, wc, who, xargs
+
+posix/make: make
+
+linux: blkdiscard, chvt, ctrlaltdel, dmesg, eject, fallocate, free,
+       freeramdisk, fsfreeze, hwclock, insmod, lsmod, lsusb, mkswap,
+       mount, mountpoint, pidof, pivot_root, pwdx, readahead, rmmod,
+       swaplabel, swapoff, swapon, switch_root, sysctl, umount,
+       unshare, uptime, vtallow
+
+net:   host, httpd, ifconfig, netcat, ping, tftp, tunctl, wget
+
+pseudo: chroot, clear, cols, cron, flock, getty, halt, hostname,
+        install, killall5, last, lastlog, login, md5sum, mktemp,
+        nologin, pagesize, printenv, respawn, rev, seq, setsid,
+        sha1sum, sha224sum, sha256sum, sha384sum, sha512sum,
+        sha512-224sum, sha512-256sum, sponge, stat, tar, truncate,
+        watch, which, whoami, yes
+
+xsi:   mknod, passwd, su
+
+LICENSE
+=======
+
+ISC, see ./LICENSE for details. Credits:
+Copyright (C) 2006, 2019 Rob Landley [rob@landley.net](mailto:rob@landley.net)
+Copyright (c) 2011 Connor Lane Smith [cls@lubutu.com](mailto:cls@lubutu.com)
+Copyright (c) 2011-2016 Dimitris Papastamos [sin@2f30.org](mailto:sin@2f30.org)
+Copyright (c) 2011 Hiltjo Posthuma [hiltjo@codemadness.org](mailto:hiltjo@codemadness.org)
+Copyright (c) 2011 Kamil Cholewiński [harry666t@gmail.com](mailto:harry666t@gmail.com)
+Copyright (c) 2011 pancake [pancake@youterm.com](mailto:pancake@youterm.com)
+Copyright (c) 2011 Random832 [random832@fastmail.us](mailto:random832@fastmail.us)
+Copyright (c) 2011 Rob Pilling [robpilling@gmail.com](mailto:robpilling@gmail.com)
+Copyright (c) 2012 Christoph Lohmann [20h@r-36.net](mailto:20h@r-36.net)
+Copyright (c) 2012 David Galos [galosd83@students.rowan.edu](mailto:galosd83@students.rowan.edu)
+Copyright (c) 2012 Kurt H. Maier [khm@sciops.net](mailto:khm@sciops.net)
+Copyright (c) 2012 Robert Ransom [rransom.8774@gmail.com](mailto:rransom.8774@gmail.com)
+Copyright (c) 2012 William Haddon [william@haddonthethird.net](mailto:william@haddonthethird.net)
+Copyright (c) 2013 Anselm R Garbe [anselm@garbe.us](mailto:anselm@garbe.us)
+Copyright (c) 2013 Christian Hesse [mail@eworm.de](mailto:mail@eworm.de)
+Copyright (c) 2013 David Galos [galosd83@students.rowan.edu](mailto:galosd83@students.rowan.edu)
+Copyright (c) 2013-2016 Dimitris Papapastamos [sin@2f30.org](mailto:sin@2f30.org)
+Copyright (c) 2013 dsp [dsp@2f30.org](mailto:dsp@2f30.org)
+Copyright (c) 2013 Federico G. Benavento [benavento@gmail.com](mailto:benavento@gmail.com)
+Copyright (c) 2013 Jakob Kramer [jakob.kramer@gmx.de](mailto:jakob.kramer@gmx.de)
+Copyright (c) 2013 Jesse Ogle [jesse.p.ogle@gmail.com](mailto:jesse.p.ogle@gmail.com)
+Copyright (c) 2013 Lorenzo Cogotti [miciamail@hotmail.it](mailto:miciamail@hotmail.it)
+Copyright (c) 2013 Markus Teich [markus.teich@stusta.mhn.de](mailto:markus.teich@stusta.mhn.de)
+Copyright (c) 2013 Markus Wichmann [nullplan@gmx.net](mailto:nullplan@gmx.net)
+Copyright (c) 2013 oblique [psyberbits@gmail.com](mailto:psyberbits@gmail.com)
+Copyright (c) 2013 Roberto E. Vargas Caballero [k0ga@shike2.com](mailto:k0ga@shike2.com)
+Copyright (c) 2013 s-p-k [mr.dwts@gmail.com](mailto:mr.dwts@gmail.com)
+Copyright (c) 2013 Truls Becken [truls.becken@gmail.com](mailto:truls.becken@gmail.com)
+Copyright (c) 2014 Adria Garriga [rhaps0dy@installgentoo.com](mailto:rhaps0dy@installgentoo.com)
+Copyright (c) 2014 Ari Malinen [ari.malinen@gmail.com](mailto:ari.malinen@gmail.com)
+Copyright (c) 2014 Brandon Mulcahy [brandon@jangler.info](mailto:brandon@jangler.info)
+Copyright (c) 2014 Carlos J. Torres [vlaadbrain@gmail.com](mailto:vlaadbrain@gmail.com)
+Copyright (c) 2014 Daniel Bainton [dpb@driftaway.org](mailto:dpb@driftaway.org)
+Copyright (c) 2014 Evan Gates [evan.gates@gmail.com](mailto:evan.gates@gmail.com)
+Copyright (c) 2014-2015 Greg Reagle [greg.reagle@umbc.edu](mailto:greg.reagle@umbc.edu)
+Copyright (c) 2014-2016 Hiltjo Posthuma [hiltjo@codemadness.org](mailto:hiltjo@codemadness.org)
+Copyright (c) 2014 Jan Tatje [jan@jnt.io](mailto:jan@jnt.io)
+Copyright (c) 2014 Jeffrey Picard [jeff@jeffreypicard.com](mailto:jeff@jeffreypicard.com)
+Copyright (c) 2014-2016 Laslo Hunhold [dev@frign.de](mailto:dev@frign.de)
+Copyright (c) 2014 Michael Forney [mforney@mforney.org](mailto:mforney@mforney.org)
+Copyright (c) 2014 Roberto E. Vargas Caballero [k0ga@shike2.com](mailto:k0ga@shike2.com)
+Copyright (c) 2014 Silvan Jegen [s.jegen@gmail.com](mailto:s.jegen@gmail.com)
+Copyright (c) 2014 Tuukka Kataja [stuge@xor.fi](mailto:stuge@xor.fi)
+Copyright (c) 2015 Dionysis Grigoropoulos [info@erethon.com](mailto:info@erethon.com)
+Copyright (c) 2015 Quentin Rameau [quinq@fifth.space](mailto:quinq@fifth.space)
+Copyright (c) 2015 Risto Salminen [ripejcp@gmail.com](mailto:ripejcp@gmail.com)
+Copyright (c) 2015 Tai Chi Minh Ralph Eastwood [tcmreastwood@gmail.com](mailto:tcmreastwood@gmail.com)
+Copyright (c) 2015 Wolfgang Corcoran-Mathe [wcm@sigwinch.xyz](mailto:wcm@sigwinch.xyz)
+Copyright (c) 2016 Eivind Uggedal [eivind@uggedal.com](mailto:eivind@uggedal.com)
+Copyright (c) 2016 Mattias Andrée [m@maandree.se](mailto:m@maandree.se)
+Copyright (c) 2026 xplshn [anto@xplshn.com.ar](mailto:anto@xplshn.com.ar) (https://github.com/xplshn)
+
+Portions of this software (specifically utils under net/) are partially
+based on code written by Rob Landley
+The rest are based on SBASE/UBASE source code
+
+=~= Argentino Roca Unix Utilities =~= https://github.com/xplshn/aruu =~=
