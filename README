@@ -74,8 +74,7 @@ SOURCE LAYOUT
       libutil/             utility library (eprintf, ealloc, recurse, ...)
       libutf/              UTF-8/rune library
     cmd/
-      posix/               POSIX.1-2008 tools (cat, ls, grep, sed, ...)
-      posix/make/          POSIX make implementation
+      posix/               POSIX.1-2008 tools (sh, make, grep, sed, pax, ...)
       linux/               Linux-specific tools (mount, dmesg, insmod, ...)
       net/                 networking tools (wget, ping, nc, ifconfig, ...)
       pseudo/              widely-used non-POSIX tools (tar, stat, seq, ...)
