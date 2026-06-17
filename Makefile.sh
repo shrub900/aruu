@@ -46,12 +46,31 @@ EOF
 unset _line _key _val _trimmed
 CPPFLAGS="-Ishared -DPREFIX=\"$PREFIX\" -D_DEFAULT_SOURCE -D_GNU_SOURCE -D_NETBSD_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700 -D_FILE_OFFSET_BITS=64$_feature_flags"
 if [ "$FEATURE_USE_BEARSSL" = "1" ]; then
-	CPPFLAGS="$CPPFLAGS -IexternalRepos/BearSSL/inc"
-	LDFLAGS="$LDFLAGS -LexternalRepos/BearSSL/build"
-	LDLIBS="$LDLIBS externalRepos/BearSSL/build/libbearssl.a"
+	if pkg-config --exists libbearssl 2>/dev/null; then
+		CPPFLAGS="$CPPFLAGS $(pkg-config --cflags libbearssl)"
+		LDLIBS="$LDLIBS $(pkg-config --libs libbearssl)"
+	elif pkg-config --exists bearssl 2>/dev/null; then
+		CPPFLAGS="$CPPFLAGS $(pkg-config --cflags bearssl)"
+		LDLIBS="$LDLIBS $(pkg-config --libs bearssl)"
+	else
+		LDLIBS="$LDLIBS -lbearssl"
+	fi
 fi
 if [ "$FEATURE_USE_LIBRESSL" = "1" ]; then
-	LDLIBS="$LDLIBS -ltls"
+	if pkg-config --exists libtls 2>/dev/null; then
+		CPPFLAGS="$CPPFLAGS $(pkg-config --cflags libtls)"
+		LDLIBS="$LDLIBS $(pkg-config --libs libtls)"
+	else
+		LDLIBS="$LDLIBS -ltls"
+	fi
+fi
+if [ "$FEATURE_USE_OPENSSL" = "1" ]; then
+	if pkg-config --exists openssl 2>/dev/null; then
+		CPPFLAGS="$CPPFLAGS $(pkg-config --cflags openssl)"
+		LDLIBS="$LDLIBS $(pkg-config --libs openssl)"
+	else
+		LDLIBS="$LDLIBS -lssl -lcrypto"
+	fi
 fi
 unset _feature_flags
 
