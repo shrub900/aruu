@@ -270,6 +270,13 @@ build_awk() {
 		if   command -v yacc  >/dev/null 2>&1; then
 			printf '  YACC  %s/awkgram.tab.c\n' "$dir"
 			yacc  -d -o "$dir/awkgram.tab.c" "$dir/awkgram.y"
+			if [ ! -f "$dir/awkgram.tab.h" ]; then
+				if [ -f y.tab.h ]; then
+					mv y.tab.h "$dir/awkgram.tab.h"
+				elif [ -f "$dir/y.tab.h" ]; then
+					mv "$dir/y.tab.h" "$dir/awkgram.tab.h"
+				fi
+			fi
 		elif command -v bison >/dev/null 2>&1; then
 			printf '  BISON %s/awkgram.tab.c\n' "$dir"
 			bison -d -o "$dir/awkgram.tab.c" "$dir/awkgram.y"
