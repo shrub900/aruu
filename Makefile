@@ -769,6 +769,10 @@ SHOBJ =\
 
 cmd/posix/awk/awkgram.tab.c cmd/posix/awk/awkgram.tab.h: cmd/posix/awk/awkgram.y
 	$(YACC) -d -o cmd/posix/awk/awkgram.tab.c cmd/posix/awk/awkgram.y
+	@if [ ! -f cmd/posix/awk/awkgram.tab.h ]; then \
+		if [ -f y.tab.h ]; then mv y.tab.h cmd/posix/awk/awkgram.tab.h; \
+		elif [ -f cmd/posix/awk/y.tab.h ]; then mv cmd/posix/awk/y.tab.h cmd/posix/awk/awkgram.tab.h; fi; \
+	fi
 
 cmd/posix/awk/maketab: cmd/posix/awk/maketab.c cmd/posix/awk/awkgram.tab.h
 	$(CC) $(CFLAGS) -o $@ cmd/posix/awk/maketab.c
