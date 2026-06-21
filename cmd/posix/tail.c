@@ -168,15 +168,15 @@ main(int argc, char *argv[])
 	int (*tail)(int, const char *, size_t) = taketail;
 
 	ARGBEGIN {
-	// ?man -f: continue writing appended data as the file grows
+	// ?man -f: force the operation
 	case 'f':
 		fflag = 1;
 		break;
-	// ?man -c:num: display the last num bytes of each file
+	// ?man -c: print count or perform stdout action
 	case 'c':
-	// ?man -m:num: display the last num characters of each file
+	// ?man -m: specify mode or limit
 	case 'm':
-	// ?man -n:num: display the last num lines of each file
+	// ?man -n:num: print line numbers or counts
 	case 'n':
 		mode = ARGC();
 		numstr = EARGF(usage());
@@ -185,7 +185,7 @@ main(int argc, char *argv[])
 		if (strchr(numstr, '+'))
 			tail = dropinit;
 		break;
-	// ?man -num: display the last num lines of each file
+	// ?man ARGNUM: specify RGNUM option
 	ARGNUM:
 		n = ARGNUMF();
 		break;

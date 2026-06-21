@@ -18,7 +18,7 @@ usage(void)
 }
 
 // ?man env: run command in modified environment
-// ?man arguments: [name=value ...] [cmd [arg ...]]
+// ?man arguments: ... [var=value] ... [cmd [arg ...
 // ?man set environment variables and run a command
 int
 main(int argc, char *argv[])
@@ -26,11 +26,11 @@ main(int argc, char *argv[])
 	int savederrno;
 
 	ARGBEGIN {
-	// ?man -i: ignore the inherited environment and start from an empty one
+	// ?man -i: interactive mode or prompt for confirmation
 	case 'i':
 		*environ = NULL;
 		break;
-	// ?man -u:name: remove name from the environment
+	// ?man -u:str: unbuffered output
 	case 'u':
 		if (unsetenv(EARGF(usage())) < 0)
 			eprintf("unsetenv:");

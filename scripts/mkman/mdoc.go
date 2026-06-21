@@ -16,27 +16,21 @@ func NewMdocRenderer(page *Page, w io.Writer) *MdocRenderer {
 }
 
 func (r *MdocRenderer) Render() error {
-	if err := r.page.validate(); err != nil {
-		return err
-	}
+	if err := r.page.validate(); err != nil { return err; }
 
 	fmt.Fprintf(r.w, ".Dd %s\n", troffEscape(r.page.Date))
 	fmt.Fprintf(r.w, ".Dt %s %d\n", strings.ToUpper(r.page.Name), r.page.Section)
 	fmt.Fprintf(r.w, ".Os %s\n", "aruu")
 
 	r.renderName()
-	if len(r.page.Synopsis) != 0 {
-		r.renderSynopsis()
-	}
-	if len(r.page.Description) != 0 {
-		r.renderDescription()
-	}
-	if len(r.page.Options) != 0 {
-		r.renderOptions()
-	}
+	if len(r.page.Synopsis) != 0 { r.renderSynopsis(); }
+	if len(r.page.Description) != 0 { r.renderDescription(); }
+	if len(r.page.Options) != 0 { r.renderOptions(); }
+
 	for _, section := range r.page.Sections {
 		r.renderSection(section.Title, section.Blocks)
 	}
+
 	return nil
 }
 
@@ -62,6 +56,11 @@ func (r *MdocRenderer) renderSynopsis() {
 			item := form.Items[i]
 			if item.Kind == SynOptional {
 				fmt.Fprintf(r.w, ".Op %s\n", renderSynopsisPhrase(item.Children, false))
+				i++
+				continue
+			}
+			if item.Kind == SynRequiredGroup {
+				fmt.Fprintf(r.w, ".Brq %s\n", renderSynopsisPhrase(item.Children, false))
 				i++
 				continue
 			}
@@ -106,6 +105,8 @@ func renderSynopsisPhrase(items []SynopsisItem, topLevel bool) string {
 			parts = append(parts, troffEscape(item.Text))
 		case SynOptional:
 			parts = append(parts, renderMacro("Op", renderSynopsisPhrase(item.Children, false), topLevel && len(parts) == 0))
+		case SynRequiredGroup:
+			parts = append(parts, renderMacro("Brq", renderSynopsisPhrase(item.Children, false), topLevel && len(parts) == 0))
 		}
 	}
 	return strings.Join(parts, " ")
@@ -113,14 +114,12 @@ func renderSynopsisPhrase(items []SynopsisItem, topLevel bool) string {
 
 func renderMacro(name, body string, topLevel bool) string {
 	if body == "" {
-		if topLevel {
-			return "." + name
-		}
+		if topLevel { return "." + name; }
+
 		return name
 	}
-	if topLevel {
-		return "." + name + " " + body
-	}
+	if topLevel { return "." + name + " " + body; }
+
 	return name + " " + body
 }
 
@@ -246,6 +245,4 @@ func trailingSpace(inline Inline) bool {
 	}
 }
 
-func isSpaceByte(b byte) bool {
-	return b == ' ' || b == '\t' || b == '\n'
-}
+func isSpaceByte(b byte) bool { return b == ' ' || b == '\t' || b == '\n'; }

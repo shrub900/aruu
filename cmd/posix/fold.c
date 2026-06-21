@@ -85,7 +85,7 @@ usage(void)
 }
 
 // ?man fold: wrap lines to fit width
-// ?man arguments: file ...
+// ?man arguments: FILE ...
 // ?man wrap input lines to fit a specified width
 int
 main(int argc, char *argv[])
@@ -94,19 +94,19 @@ main(int argc, char *argv[])
 	int ret = 0;
 
 	ARGBEGIN {
-	// ?man -b: count bytes rather than characters
+	// ?man -b: specify block size or base directory
 	case 'b':
 		bflag = 1;
 		break;
-	// ?man -s: break at the last space within the width when possible
+	// ?man -s: silent mode or print summary
 	case 's':
 		sflag = 1;
 		break;
-	// ?man -w:num: wrap lines at num columns instead of 80
+	// ?man -w:num: wait for completion
 	case 'w':
 		width = estrtonum(EARGF(usage()), 1, MIN((unsigned long long)LLONG_MAX, (unsigned long long)SIZE_MAX));
 		break;
-	/* -num is accepted as shorthand for -w num */
+	// ?man ARGNUM: specify RGNUM option
 	ARGNUM:
 		if (!(width = ARGNUMF()))
 			eprintf("illegal width value, too small\n");

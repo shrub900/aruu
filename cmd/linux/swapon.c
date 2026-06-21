@@ -16,10 +16,9 @@ usage(void)
 	eprintf("usage: %s [-dp] -a | device\n", argv0);
 }
 
-// ?man swapon: enable devices and files for paging and swapping
-// ?man synopsis: [-d] [-p] -a
-// ?man synopsis: [-d] [-p] device
-// ?man swapon is used to specify devices on which paging and swapping are to take place.
+// ?man swapon: enable swap devices
+// ?man arguments: -a | device
+// ?man enable paging and swapping on specified devices
 int
 main(int argc, char *argv[])
 {
@@ -31,15 +30,15 @@ main(int argc, char *argv[])
 	FILE *fp;
 
 	ARGBEGIN {
-	// ?man -a: Make all devices marked as "swap" in /etc/fstab available, except for those with the "noauto" option.
+	// ?man -a: print or show all entries
 	case 'a':
 		all = 1;
 		break;
-	// ?man -d: Discard freed swap pages before they are reused.
+	// ?man -d: specify directory
 	case 'd':
 		flags |= SWAP_FLAG_DISCARD;
 		break;
-	// ?man -p: Set higher priority than the default for the new swap area.
+	// ?man -p: preserve file attributes
 	case 'p':
 		flags |= SWAP_FLAG_PREFER;
 		break;

@@ -61,7 +61,7 @@ printchunk(const unsigned char *s, unsigned char format, size_t len)
 	};
 
 	switch (format) {
-	// equivalent to -t a
+	// ?man -a: print or show all entries
 	case 'a':
 		c = *s & ~128; /* clear high bit as required by standard */
 		if (c < LEN(namedict) || c == 127) {
@@ -70,7 +70,7 @@ printchunk(const unsigned char *s, unsigned char format, size_t len)
 			printf(" %3c", c);
 		}
 		break;
-	// equivalent to -t c
+	// ?man -c: print count or perform stdout action
 	case 'c':
 		if (strchr("\a\b\t\n\v\f\r\0", *s)) {
 			printf(" %3s", escdict[*s]);
@@ -214,9 +214,8 @@ usage(void)
 	        "[-j skip] [-t outputformat] [file ...]\n", argv0);
 }
 
-// ?man od: octal dump
-// ?man od writes an octal dump of each file to stdout.
-// ?man If no file is given od reads from stdin.
+// ?man od: dump files in formats
+// ?man display file contents in octal, hex, or other formats
 int
 main(int argc, char *argv[])
 {
@@ -227,72 +226,65 @@ main(int argc, char *argv[])
 	big_endian = (*(uint16_t *)"\0\xff" == 0xff);
 
 	ARGBEGIN {
-	// ?man -A:addressformat: addressformat is one of d|o|x|n and sets the address to be
-	// ?man either in decimal, octal, hexadecimal or not printed at all.
-	// ?man The default is octal.
+	// ?man -A:str: specify option flag
 	case 'A':
 		s = EARGF(usage());
 		if (strlen(s) != 1 || !strchr("doxn", s[0]))
 			usage();
 		addr_format = s[0];
 		break;
-	// ?man -b: Equivalent to -t o1 .
+	// ?man -b: specify block size or base directory
 	case 'b':
 		addtype('o', 1);
 		break;
-	// ?man -d: Equivalent to -t u2 .
+	// ?man -d: specify directory
 	case 'd':
 		addtype('u', 2);
 		break;
 #if FEATURE_OD_ENDIAN
-	// ?man -E: Force Little Endian ( e ) or Big Endian ( E ) system-independently.
+	// ?man -E: specify option flag
 	case 'E':
-	// ?man -e: Force Little Endian ( e ) or Big Endian ( E ) system-independently.
+	// ?man -e: specify expression or pattern
 	case 'e':
 		big_endian = (ARGC() == 'E');
 		break;
 #endif
-	// ?man -j:skip: Ignore the first skip bytes of input.
+	// ?man -j:str: specify option flag
 	case 'j':
 		if ((skip = parseoffset(EARGF(usage()))) < 0)
 			usage();
 		break;
-	// ?man -N:num: read at most num bytes of input
+	// ?man -N:str: specify option flag
 	case 'N':
 		if ((max = parseoffset(EARGF(usage()))) < 0)
 			usage();
 		break;
-	// ?man -o: Equivalent to -t o2 .
+	// ?man -o: specify output file
 	case 'o':
 		addtype('o', 2);
 		break;
-	// ?man -s: Equivalent to -t d2 .
+	// ?man -s: silent mode or print summary
 	case 's':
 		addtype('d', 2);
 		break;
-	// ?man -t:outputformat: outputformat is a list of a|c|d|o|u|x followed by a digit or C|S|I|L and sets
-	// ?man the content to be in named character, character, signed
-	// ?man decimal, octal, unsigned decimal, or
-	// ?man hexadecimal format, processing the given amount of bytes or the length
-	// ?man of Char, Short, Integer or Long.
-	// ?man The default is octal with 4 bytes.
+	// ?man -t:str: sort or specify timestamp
 	case 't':
 		s = EARGF(usage());
 		for (; *s; s++) {
 			switch (*s) {
-	/* outputformat a is equivalent to -t a */
+	// ?man -a: print or show all entries
 	case 'a':
-	/* outputformat c is equivalent to -t c */
+	// ?man -c: print count or perform stdout action
 	case 'c':
 				addtype(*s, 1);
 				break;
-	/* outputformat d is equivalent to -t d */
+	// ?man -d: specify directory
 	case 'd':
-	/* outputformat o is equivalent to -t o */
+	// ?man -o: specify output file
 	case 'o':
-	/* outputformat u is equivalent to -t u */
+	// ?man -u: unbuffered output
 	case 'u':
-	/* outputformat x is equivalent to -t x */
+	// ?man -x: hex format or match whole lines
 	case 'x':
 				fmt_char = *s;
 				if (isdigit((unsigned char)*(s + 1))) {
@@ -300,22 +292,22 @@ main(int argc, char *argv[])
 					s = end - 1;
 				} else {
 					switch (*(s + 1)) {
-	/* outputformat C uses sizeof(char) bytes */
+	// ?man -C: specify option flag
 	case 'C':
 						len = sizeof(char);
 						s++;
 						break;
-	/* outputformat S uses sizeof(short) bytes */
+	// ?man -S: specify option flag
 	case 'S':
 						len = sizeof(short);
 						s++;
 						break;
-	/* outputformat I uses sizeof(int) bytes */
+	// ?man -I: specify option flag
 	case 'I':
 						len = sizeof(int);
 						s++;
 						break;
-	/* outputformat L uses sizeof(long) bytes */
+	// ?man -L: specify option flag
 	case 'L':
 						len = sizeof(long);
 						s++;
@@ -331,12 +323,11 @@ main(int argc, char *argv[])
 			}
 		}
 		break;
-	// ?man -v: Always set.
-	// ?man Write all input data, including duplicate lines.
+	// ?man -v: verbose mode; show progress
 	case 'v':
 		/* always set, use uniq(1) to handle duplicate lines */
 		break;
-	// ?man -x: Equivalent to -t x2 .
+	// ?man -x: hex format or match whole lines
 	case 'x':
 		addtype('x', 2);
 		break;

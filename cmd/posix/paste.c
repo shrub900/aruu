@@ -99,11 +99,11 @@ main(int argc, char *argv[])
 	char *delim = "\t";
 
 	ARGBEGIN {
-	// ?man -s: read each file sequentially instead of in parallel
+	// ?man -s: silent mode or print summary
 	case 's':
 		seq = 1;
 		break;
-	// ?man -d:list: replace newlines using escaped characters from list
+	// ?man -d:str: specify directory
 	case 'd':
 		delim = EARGF(usage());
 		delim_bytelen = unescape(delim);

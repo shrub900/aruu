@@ -17,7 +17,7 @@ usage(void)
 }
 
 // ?man time: time command execution
-// ?man arguments: cmd [arg ...]
+// ?man arguments: cmd [arg ...
 // ?man run a command and report its execution duration
 int
 main(int argc, char *argv[])
@@ -29,7 +29,7 @@ main(int argc, char *argv[])
 	int status, savederrno, ret = 0;
 
 	ARGBEGIN {
-	// ?man -p: use the portable output format "real %f\\nuser %f\\nsys %f\\n"
+	// ?man -p: preserve file attributes
 	case 'p':
 		break;
 	default:

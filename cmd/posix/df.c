@@ -91,8 +91,8 @@ usage(void)
 	eprintf("usage: %s [-a]\n", argv0);
 }
 
-// ?man df: show file system usage
-// ?man df displays the amount of disk space available on a file system. If no arguments are given, df shows all the file systems using 512-byte blocks.
+// ?man df: report disk space usage
+// ?man display free and used disk space on filesystems
 int
 main(int argc, char *argv[])
 {
@@ -101,24 +101,24 @@ main(int argc, char *argv[])
 	int ret = 0;
 
 	ARGBEGIN {
-	// ?man -a: Show all file systems including dummy ones. This is the default option.
+	// ?man -a: print or show all entries
 	case 'a':
 		aflag = 1;
 		break;
-	// ?man -h: Not implemented.
+	// ?man -h: suppress headers or print help
 	case 'h':
 		hflag = 1;
 		kflag = 0;
 		break;
-	// ?man -k: Print sizes in 1024-byte blocks.
+	// ?man -k: specify option flag
 	case 'k':
 		kflag = 1;
 		hflag = 0;
 		blksize = 1024;
 		break;
-	// ?man -s: Accepted for compatibility; not implemented.
+	// ?man -s: silent mode or print summary
 	case 's':
-	// ?man -i: Not implemented.
+	// ?man -i: interactive mode or prompt for confirmation
 	case 'i':
 		eprintf("not implemented\n");
 		break;

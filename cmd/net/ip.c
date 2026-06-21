@@ -346,9 +346,7 @@ do_route(int argc, char *argv[])
 }
 
 // ?man ip: show or configure routing and devices
-// ?man synopsis: addr [args ...]
-// ?man synopsis: link [args ...]
-// ?man synopsis: route [args ...]
+// ?man arguments: addr | link | route] [args...
 // ?man configure and view network devices, routing, and tunnels
 // ?man ## COMMANDS
 // ?man ### addr [show | list [dev <device>]]

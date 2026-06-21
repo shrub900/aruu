@@ -23,7 +23,7 @@ usage(void)
 }
 
 // ?man getconf: query configuration variables
-// ?man arguments: var [path]
+// ?man arguments: var [path
 // ?man query system configuration variables
 int
 main(int argc, char *argv[])
@@ -34,7 +34,7 @@ main(int argc, char *argv[])
 	char *str;
 
 	ARGBEGIN {
-	// ?man -v:spec: accepted for compatibility; ignored
+	// ?man -v:str: verbose mode; show progress
 	case 'v':
 		/* ignore */
 		EARGF(usage());

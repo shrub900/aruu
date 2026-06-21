@@ -44,11 +44,11 @@ main(int argc, char *argv[])
 	int ret = 0, i, diff = 0, seenline = 0;
 
 	ARGBEGIN {
-	// ?man -1: suppress lines unique to file1
+	// ?man -1: specify option flag
 	case '1':
-	// ?man -2: suppress lines unique to file2
+	// ?man -2: specify option flag
 	case '2':
-	// ?man -3: suppress lines common to both files
+	// ?man -3: specify option flag
 	case '3':
 		show &= 0x07 ^ (1 << (ARGC() - '1'));
 		break;

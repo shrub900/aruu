@@ -79,19 +79,19 @@ main(int argc, char *argv[])
 	int ret = 0;
 
 	ARGBEGIN {
-	// ?man -c: print the number of bytes
+	// ?man -c: print count or perform stdout action
 	case 'c':
 		cmode = 'c';
 		break;
-	// ?man -m: print the number of characters
+	// ?man -m: specify mode or limit
 	case 'm':
 		cmode = 'm';
 		break;
-	// ?man -l: print the number of lines
+	// ?man -l: list in long format
 	case 'l':
 		lflag = 1;
 		break;
-	// ?man -w: print the number of words
+	// ?man -w: wait for completion
 	case 'w':
 		wflag = 1;
 		break;

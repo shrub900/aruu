@@ -451,17 +451,8 @@ join(FILE *fa, FILE *fb, size_t jfa, size_t jfb)
 }
 
 
-// ?man join: relational database operator
-// ?man join lines from file1 and file2 on a matching field.
-// ?man If one of the input files is '-', standard input is read for that file.
-// ?man Files are read sequentially and are assumed to be sorted on the join
-// ?man field.
-// ?man join does not check the order of input, and joining two unsorted files will
-// ?man produce unexpected output.
-// ?man By default, input lines are matched on the first blank-separated
-// ?man field; output lines are space-separated and consist of the join field
-// ?man followed by the remaining fields from file1,
-// ?man then the remaining fields from file2.
+// ?man join: join lines on common field
+// ?man join lines of two sorted files on a common field
 int
 main(int argc, char *argv[])
 {
@@ -471,15 +462,15 @@ main(int argc, char *argv[])
 	char *fno;
 
 	ARGBEGIN {
-	// ?man -1:field: Join on the fieldth field of file 1.
+	// ?man -1:num: specify option flag
 	case '1':
 		jf[0] = estrtonum(EARGF(usage()), 1, MIN((unsigned long long)LLONG_MAX, (unsigned long long)SIZE_MAX));
 		break;
-	// ?man -2:field: Join on the fieldth field of file 2.
+	// ?man -2:num: specify option flag
 	case '2':
 		jf[1] = estrtonum(EARGF(usage()), 1, MIN((unsigned long long)LLONG_MAX, (unsigned long long)SIZE_MAX));
 		break;
-	// ?man -a:fileno: Print unpairable lines from file fileno in addition to normal output.
+	// ?man -a:str: print or show all entries
 	case 'a':
 		fno = EARGF(usage());
 		if (strcmp(fno, "1") == 0)
@@ -489,29 +480,21 @@ main(int argc, char *argv[])
 		else
 			usage();
 		break;
-	// ?man -e:string: When used with -o, replace empty fields in the output list with string.
+	// ?man -e:str: specify expression or pattern
 	case 'e':
 		replace = EARGF(usage());
 		break;
-	// ?man -o:list: Format output according to the string list.
-	// ?man Each element of list may be either fileno.field or 0 representing the join field.
-	// ?man Elements in list may be separated by blanks or commas.
-	// ?man For example,
-	// ?man join -o "0 2.1 1.3"
-	// ?man would print the join field, the first field of file2,
-	// ?man then the third field of file1.
-	// ?man Only paired lines are formatted with the -o option.
-	// ?man Unpairable lines selected with -a or -v are printed raw.
+	// ?man -o:str: specify output file
 	case 'o':
 		oflag = 1;
 		initolist(&output);
 		makeolist(&output, EARGF(usage()));
 		break;
-	// ?man -t:delim: Use the arbitrary string delim as field delimiter for both input and output.
+	// ?man -t:str: sort or specify timestamp
 	case 't':
 		sep = EARGF(usage());
 		break;
-	// ?man -v:fileno: Print unpairable lines from file fileno instead of normal output.
+	// ?man -v:str: verbose mode; show progress
 	case 'v':
 		pairs = 0;
 		fno = EARGF(usage());

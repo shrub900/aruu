@@ -15,37 +15,36 @@ usage(void)
 	eprintf("usage: %s [-muinpU] cmd [args...]\n", argv0);
 }
 
-// ?man unshare: run program with some namespaces unshared from parent
-// ?man arguments: cmd [args ...]
-// ?man unshare unshares the indicated namespaces from the parent process and then executes the specified program.
-// ?man The namespaces to be unshared are indicated via options.
+// ?man unshare: run program in new namespaces
+// ?man arguments: cmd [args...
+// ?man run a program with some namespaces unshared from the parent
 int
 main(int argc, char *argv[])
 {
 	int flags = 0;
 
 	ARGBEGIN {
-	// ?man -m: Unshare the mount namespace, so that the calling process has a private copy of its namespace which is not shared with any other process. This flag has the same effect as the clone CLONE_NEWNS flag.
+	// ?man -m: specify mode or limit
 	case 'm':
 		flags |= CLONE_NEWNS;
 		break;
-	// ?man -u: Unshare the UTS IPC namespace, so that the calling process has a private copy of the UTS namespace which is not shared with any other process. This flag has the same effect as the clone CLONE_NEWUTS flag.
+	// ?man -u: unbuffered output
 	case 'u':
 		flags |= CLONE_NEWUTS;
 		break;
-	// ?man -i: Unshare the System V IPC namespace, so that the calling process has a private copy of the System V IPC namespace which is not shared with any other process. This flag has the same effect as the clone CLONE_NEWIPC flag.
+	// ?man -i: interactive mode or prompt for confirmation
 	case 'i':
 		flags |= CLONE_NEWIPC;
 		break;
-	// ?man -n: Unshare the network namespace, so that the calling process is moved into a new network namespace which is not shared with any previously existing process. This flag has the same effect as the clone CLONE_NEWNET flag.
+	// ?man -n: print line numbers or counts
 	case 'n':
 		flags |= CLONE_NEWNET;
 		break;
-	// ?man -p: Create the process in a new PID namespace. This flag has the same effect as the clone CLONE_NEWPID flag.
+	// ?man -p: preserve file attributes
 	case 'p':
 		flags |= CLONE_NEWPID;
 		break;
-	// ?man -U: The process will have a distinct set of UIDs, GIDs and capabilities.
+	// ?man -U: specify option flag
 	case 'U':
 		flags |= CLONE_NEWUSER;
 		break;

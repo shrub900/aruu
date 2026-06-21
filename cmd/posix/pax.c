@@ -846,9 +846,11 @@ readpax(struct bufio *f, struct header *h)
 		case 'g':
 			readexthdr(f, &globexthdr, h->size);
 			break;
+		// ?man -x: hex format or match whole lines
 	case 'x':
 			readexthdr(f, &exthdr, h->size);
 			break;
+		// ?man -L: specify option flag
 	case 'L':
 			if ((exthdr.delete | opt.delete) & PATH)
 				break;
@@ -2082,7 +2084,9 @@ parsereplstr(char *str)
 	for (;;) {
 		switch (*++str) {
 		case 'g': r->global = 1; break;
+		// ?man -p: preserve file attributes
 	case 'p': r->print = 1; break;
+		// ?man -s: silent mode or print summary
 	case 's': r->symlink = 0; break;
 		case 'S': r->symlink = 1; break;
 		case 0: goto done;
@@ -2329,10 +2333,6 @@ handle_append(const char *filename, const char *algo, const char *format)
 }
 
 // ?man pax: portable archive interchange
-// ?man synopsis: [-cdiknuvX] [-f archive] [-o options] [-p string] [-s replstr] [pattern ...]
-// ?man synopsis: -r [-cdiknuvX] [-f archive] [-o options] [-p string] [-s replstr] [pattern ...]
-// ?man synopsis: -w [-adituvX] [-b blocksize] [-f archive] [-o options] [-x format] [-j | -J | -z] [file ...]
-// ?man synopsis: -rw [-diklntuvX] [-H | -L] [-p string] [-s replstr] [file ...] directory
 // ?man read, write, and list member files of archive files
 int
 main(int argc, char *argv[])
@@ -2349,108 +2349,113 @@ main(int argc, char *argv[])
 	size_t l;
 
 	ARGBEGIN {
-	// ?man -a: append files to the end of an existing archive
+	// ?man -a: print or show all entries
 	case 'a':
 		aflag = 1;
 		break;
-	// ?man -b:blocksize: accepted for compatibility; block size is currently ignored
+	// ?man -b:str: specify block size or base directory
 	case 'b':
 		EARGF(usage());
 		break;
-	// ?man -c: invert the sense of path matching
+	// ?man -c: print count or perform stdout action
 	case 'c':
 		cflag = 1;
 		break;
-	// ?man -d: do not match pathnames of directory entries against patterns
+	// ?man -d: specify directory
 	case 'd':
 		dflag = 1;
 		break;
-	// ?man -f:archive: read from or write to archive instead of standard input or output
+	// ?man -f:str: force the operation
 	case 'f':
 		name = EARGF(usage());
 		break;
-	// ?man -H: follow symbolic links named on the command line
+	// ?man -H: specify option flag
 	case 'H':
 		follow = 'H';
 		break;
-	// ?man -i: rename or skip files interactively
+	// ?man -i: interactive mode or prompt for confirmation
 	case 'i':
 		iflag = 1;
 		break;
-	// ?man -j: compress or decompress the archive with bzip2
+	// ?man -j: specify option flag
 	case 'j':
 		algo = "bzip2";
 		break;
-	// ?man -J: compress or decompress the archive with xz
+	// ?man -J: specify option flag
 	case 'J':
 		algo = "xz";
 		break;
-	// ?man -k: do not overwrite existing files
+	// ?man -k: specify option flag
 	case 'k':
 		kflag = 1;
 		break;
-	// ?man -l: link files instead of copying them during pass mode when possible
+	// ?man -l: list in long format
 	case 'l':
 		lflag = 1;
 		break;
-	// ?man -L: follow all symbolic links
+	// ?man -L: specify option flag
 	case 'L':
 		follow = 'L';
 		break;
-	// ?man -n: use only the first archive member that matches each pattern
+	// ?man -n: print line numbers or counts
 	case 'n':
 		nflag = 1;
 		break;
-	// ?man -o:options: set format-specific archive options
+	// ?man -o:str: specify output file
 	case 'o':
 		parseopts(EARGF(usage()));
 		break;
-	// ?man -p:string: control which file attributes are preserved in pass mode
+	// ?man -p:str: preserve file attributes
 	case 'p':
 		for (arg = EARGF(usage()); *arg; ++arg) {
 			switch (*arg) {
+	// ?man -a: print or show all entries
 	case 'a': preserve &= ~ATIME; break;
+	// ?man -e: specify expression or pattern
 	case 'e': preserve = ~0; break;
+	// ?man -m: specify mode or limit
 	case 'm': preserve &= ~MTIME; break;
+	// ?man -o: specify output file
 	case 'o': preserve |= UID | GID; break;
+	// ?man -p: preserve file attributes
 	case 'p': preserve |= MODE; break;
 			default: fatal("unknown -p option");
 			}
 		}
 		break;
-	// ?man -r: read an archive and extract matching members
+	// ?man -r: operate recursively
 	case 'r':
 		mode |= READ;
 		break;
-	// ?man -s:replstr: rename archive members or files using a substitution expression
+	// ?man -s:str: silent mode or print summary
 	case 's':
 		parsereplstr(EARGF(usage()));
 		break;
-	// ?man -t: preserve access times of files read by pax
+	// ?man -t: sort or specify timestamp
 	case 't':
 		tflag = 1;
 		break;
-	// ?man -u: copy or extract only files newer than existing destination files
+	// ?man -u: unbuffered output
 	case 'u':
 		uflag = 1;
 		break;
-	// ?man -v: write verbose filenames while processing files
+	// ?man -v: verbose mode; show progress
 	case 'v':
 		vflag = 1;
 		break;
-	// ?man -w: write an archive or enter pass mode
+	// ?man -w: wait for completion
 	case 'w':
 		mode |= WRITE;
 		break;
-	// ?man -x:format: use the archive format format
+	// ?man -x:str: hex format or match whole lines
 	case 'x':
 		format = EARGF(usage());
 		break;
-	// ?man -X: stay on the current file system when descending directories
+	// ?man -X: specify option flag
 	case 'X':
 		Xflag = 1;
 		break;
-	// ?man -z: compress or decompress the archive with gzip
+	// ?man -z: specify option flag
 	case 'z':
 		algo = "gzip";
 		break;

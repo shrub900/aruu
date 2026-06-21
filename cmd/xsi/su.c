@@ -25,11 +25,9 @@ usage(void)
 	eprintf("usage: %s [-lp] [username]\n", argv0);
 }
 
-// ?man su: run a command with a substitute user and group ID
+// ?man su: run command with substitute user id
 // ?man arguments: username
-// ?man su allows to run commands with a substitute user and group ID.
-// ?man When called without arguments, su defaults to running an interactive shell as root.
-// ?man For backward compatibility su defaults to not change the current directory and to only set the environment variables HOME and SHELL plus USER and LOGNAME if the target username is not root.
+// ?man run a shell or command with another user id
 int
 main(int argc, char *argv[])
 {
@@ -40,11 +38,11 @@ main(int argc, char *argv[])
 	uid_t uid;
 
 	ARGBEGIN {
-	// ?man -l: Starts the shell as login shell with an environment similar to a real login.
+	// ?man -l: list in long format
 	case 'l':
 		lflag = 1;
 		break;
-	// ?man -p: Preserves the whole environment. This option is ignored if the -l option is specified.
+	// ?man -p: preserve file attributes
 	case 'p':
 		pflag = 1;
 		break;

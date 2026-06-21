@@ -262,15 +262,15 @@ main(int argc, char *argv[])
 	char *enc;
 
 	ARGBEGIN {
-	// ?man -e:str: Print the URL-encoded form of str and exit.
+	// ?man -e:str: specify expression or pattern
 	case 'e':
 		eflag = EARGF(usage());
 		break;
-	// ?man -d:str: Print the URL-decoded form of str and exit.
+	// ?man -d:str: specify directory
 	case 'd':
 		dflag = EARGF(usage());
 		break;
-	// ?man -v: Accepted for compatibility; no effect.
+	// ?man -v: verbose mode; show progress
 	case 'v':
 		break;
 	default:

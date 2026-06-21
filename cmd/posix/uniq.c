@@ -109,23 +109,23 @@ main(int argc, char *argv[])
 	char *fname[2] = { "<stdin>", "<stdout>" };
 
 	ARGBEGIN {
-	// ?man -c: prefix each output line with its number of consecutive occurrences
+	// ?man -c: print count or perform stdout action
 	case 'c':
 		countfmt = "%7ld ";
 		break;
-	// ?man -d: print only duplicate lines
+	// ?man -d: specify directory
 	case 'd':
 		dflag = 1;
 		break;
-	// ?man -u: print only unique lines
+	// ?man -u: unbuffered output
 	case 'u':
 		uflag = 1;
 		break;
-	// ?man -f:num: ignore the first num fields when comparing lines
+	// ?man -f:num: force the operation
 	case 'f':
 		fskip = estrtonum(EARGF(usage()), 0, INT_MAX);
 		break;
-	// ?man -s:num: ignore the first num characters when comparing lines
+	// ?man -s:num: silent mode or print summary
 	case 's':
 		sskip = estrtonum(EARGF(usage()), 0, INT_MAX);
 		break;

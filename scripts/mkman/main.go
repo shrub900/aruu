@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// Parse config.mk variables and values
+// parse config.mk variables and values
 type Config map[string]string
 
 func parseConfigMk(path string) (Config, error) {
@@ -71,7 +71,7 @@ func (cfg Config) isEnabled(key string) bool {
 	return cfg[key] == "1"
 }
 
-// Preprocessor condition stack for nested feature blocks
+// preprocessor condition stack for nested feature blocks
 type ifFrame struct {
 	active bool
 	seen   bool
@@ -116,7 +116,7 @@ func (s *ifStack) top() *ifFrame {
 	return &s.frames[len(s.frames)-1]
 }
 
-// Parse and evaluate preprocessor feature conditions
+// parse and evaluate preprocessor feature conditions
 func evalCondition(expr string, cfg Config) bool {
 	expr = strings.TrimSpace(expr)
 	if strings.HasPrefix(expr, "defined(") && strings.HasSuffix(expr, ")") {
@@ -146,7 +146,7 @@ func evalCondition(expr string, cfg Config) bool {
 	return cfg[expr] == "1"
 }
 
-// Section inference from file path
+// section inference from file path
 func inferSection(path string) int {
 	clean := filepath.ToSlash(path)
 	switch {
@@ -159,15 +159,32 @@ func inferSection(path string) int {
 	}
 }
 
-// Main entry point and flags definition
+// a Renderer turns a parsed Page into one output format on os.Stdout
+type Renderer interface {
+	Render() error
+}
+
+func newRenderer(format string, page *Page) (Renderer, error) {
+	switch strings.ToLower(format) {
+	case "", "mdoc":
+		return NewMdocRenderer(page, os.Stdout), nil
+	case "txt":
+		return NewTxtRenderer(page, os.Stdout), nil
+	default:
+		return nil, fmt.Errorf("unknown format %q (want mdoc or txt)", format)
+	}
+}
+
+// main entry point and flags definition
 func main() {
 	configPath := flag.String("config", "config.mk", "path to config.mk")
 	sectionFlag := flag.Int("section", 0, "man section override (0 = infer from path)")
 	dateFlag := flag.String("date", "", "date string for TH line (default: current month/year)")
+	formatFlag := flag.String("fmt", "mdoc", "output format: mdoc or txt")
 	flag.Parse()
 
 	if flag.NArg() < 1 {
-		fmt.Fprintf(os.Stderr, "usage: mkman [-config config.mk] [-section N] file.c\n")
+		fmt.Fprintf(os.Stderr, "usage: mkman [-config config.mk] [-section N] [-fmt mdoc|txt] file.c\n")
 		os.Exit(1)
 	}
 	cfile := flag.Arg(0)
@@ -199,7 +216,11 @@ func main() {
 		os.Exit(0)
 	}
 
-	r := NewMdocRenderer(page, os.Stdout)
+	r, err := newRenderer(*formatFlag, page)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "mkman: %v\n", err)
+		os.Exit(1)
+	}
 	if err := r.Render(); err != nil {
 		fmt.Fprintf(os.Stderr, "mkman: render: %v\n", err)
 		os.Exit(1)

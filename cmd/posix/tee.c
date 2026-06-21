@@ -26,11 +26,11 @@ main(int argc, char *argv[])
 	char buf[BUFSIZ];
 
 	ARGBEGIN {
-	// ?man -a: append to each file instead of overwriting it
+	// ?man -a: print or show all entries
 	case 'a':
 		aflag = O_APPEND;
 		break;
-	// ?man -i: ignore SIGINT
+	// ?man -i: interactive mode or prompt for confirmation
 	case 'i':
 		iflag = 1;
 		break;

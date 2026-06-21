@@ -116,11 +116,7 @@ usage(void)
 
 // ?man hwclock: query or set the hardware clock
 // ?man arguments: dev
-// ?man hwclock is a tool for accessing the hardware clock.
-// ?man You can display the current time, set the hardware clock from the System Time, or set the System Time from the hardware clock.
-// ?man It currently only works with UTC.
-// ?man You can use dev to specify the RTC device node absolute path.
-// ?man By default it will use /dev/rtc.
+// ?man view or adjust the hardware real time clock
 int
 main(int argc, char *argv[])
 {
@@ -130,19 +126,19 @@ main(int argc, char *argv[])
 	int wflag = 0;
 
 	ARGBEGIN {
-	// ?man -r: Read the hardware clock and print the time on stdout.
+	// ?man -r: operate recursively
 	case 'r':
 		rflag = 1;
 		break;
-	// ?man -s: Set the system time from the hardware clock.
+	// ?man -s: silent mode or print summary
 	case 's':
 		sflag = 1;
 		break;
-	// ?man -w: Set the hardware clock to the system time.
+	// ?man -w: wait for completion
 	case 'w':
 		wflag = 1;
 		break;
-	// ?man -u: Use UTC. This is the default option.
+	// ?man -u: unbuffered output
 	case 'u':
 		break;
 	default:

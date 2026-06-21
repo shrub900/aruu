@@ -85,9 +85,7 @@ usage(void)
 }
 
 // ?man xinstall: copy files and set attributes
-// ?man synopsis: [-g group] [-o owner] [-m mode] -d dir ...
-// ?man synopsis: [-g group] [-o owner] [-m mode] [-D] -t dest source ...
-// ?man synopsis: [-g group] [-o owner] [-m mode] [-D] source ... dest
+// ?man arguments: (-d dir ... | (-t dest source ... | source ... dest))
 // ?man copy files and set their permissions and ownership
 int
 main(int argc, char *argv[])
@@ -103,35 +101,35 @@ main(int argc, char *argv[])
 	char *p;
 
 	ARGBEGIN {
-	// ?man -c: accepted for compatibility; has no effect
+	// ?man -c: print count or perform stdout action
 	case 'c':
 		/* no-op for compatibility */
 		break;
-	// ?man -d: create directories instead of installing files
+	// ?man -d: specify directory
 	case 'd':
 		dflag = 1;
 		break;
-	// ?man -D: create leading directories for the destination before installing
+	// ?man -D: specify option flag
 	case 'D':
 		Dflag = 1;
 		break;
-	// ?man -s: accepted for compatibility; has no effect
+	// ?man -s: silent mode or print summary
 	case 's':
 		/* no-op for compatibility */
 		break;
-	// ?man -g:group: set the installed file group to group
+	// ?man -g:str: specify option flag
 	case 'g':
 		gflag = EARGF(usage());
 		break;
-	// ?man -o:owner: set the installed file owner to owner
+	// ?man -o:str: specify output file
 	case 'o':
 		oflag = EARGF(usage());
 		break;
-	// ?man -m:mode: set the installed file mode to mode
+	// ?man -m:str: specify mode or limit
 	case 'm':
 		mflag = EARGF(usage());
 		break;
-	// ?man -t:dest: install source files into the destination directory dest
+	// ?man -t:str: sort or specify timestamp
 	case 't':
 		tflag = EARGF(usage());
 		break;

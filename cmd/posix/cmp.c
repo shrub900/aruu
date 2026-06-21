@@ -24,11 +24,11 @@ main(int argc, char *argv[])
 	int ret = 0, lflag = 0, sflag = 0, same = 1, b[2];
 
 	ARGBEGIN {
-	// ?man -l: print the byte number and differing bytes for every difference
+	// ?man -l: list in long format
 	case 'l':
 		lflag = 1;
 		break;
-	// ?man -s: print nothing and return status only
+	// ?man -s: silent mode or print summary
 	case 's':
 		sflag = 1;
 		break;

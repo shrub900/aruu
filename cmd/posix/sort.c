@@ -305,27 +305,27 @@ parse_flags(char **s, int *flags, int bflag)
 {
 	while (isalpha((int)**s)) {
 		switch (*((*s)++)) {
-		/* parse key-specific b modifier */
+		// ?man -b: specify block size or base directory
 	case 'b':
 			*flags |= bflag;
 			break;
-		/* parse key-specific d modifier */
+		// ?man -d: specify directory
 	case 'd':
 			*flags |= MOD_D;
 			break;
-		/* parse key-specific f modifier */
+		// ?man -f: force the operation
 	case 'f':
 			*flags |= MOD_F;
 			break;
-		/* parse key-specific i modifier */
+		// ?man -i: interactive mode or prompt for confirmation
 	case 'i':
 			*flags |= MOD_I;
 			break;
-		/* parse key-specific n modifier */
+		// ?man -n: print line numbers or counts
 	case 'n':
 			*flags |= MOD_N;
 			break;
-		/* parse key-specific r modifier */
+		// ?man -r: operate recursively
 	case 'r':
 			*flags |= MOD_R;
 			break;
@@ -396,9 +396,8 @@ usage(void)
 }
 
 // ?man sort: sort lines
-// ?man synopsis: [-Cbcdfimnru] [-o outfile] [-t delim] [-k key ...] [file ...]
-// ?man sort writes the sorted concatenation of each file to stdout.
-// ?man If no file is given sort reads from stdin.
+// ?man arguments: -Cbcdfimnru
+// ?man sort or merge lines of text files
 int
 main(int argc, char *argv[])
 {
@@ -409,44 +408,35 @@ main(int argc, char *argv[])
 	char *outfile = NULL;
 
 	ARGBEGIN {
-	// ?man -C: Check that the concatenation of the given files is sorted rather than sorting them.
-	// ?man In this mode, no output is printed to stdout, and the exit status indicates the result of the check.
+	// ?man -C: specify option flag
 	case 'C':
 		Cflag = 1;
 		break;
-	// ?man -b: Skip leading whitespace of columns when sorting.
+	// ?man -b: specify block size or base directory
 	case 'b':
 		global_flags |= MOD_STARTB | MOD_ENDB;
 		break;
-	// ?man -c: The same as -C except that when disorder is detected, a message is written to stderr indicating the location of the disorder.
+	// ?man -c: print count or perform stdout action
 	case 'c':
 		cflag = 1;
 		break;
-	// ?man -d: Skip non-whitespace and non-alphanumeric characters.
+	// ?man -d: specify directory
 	case 'd':
 		global_flags |= MOD_D;
 		break;
-	// ?man -f: Ignore letter case when sorting.
+	// ?man -f: force the operation
 	case 'f':
 		global_flags |= MOD_F;
 		break;
-	// ?man -i: Skip non-printable characters.
+	// ?man -i: interactive mode or prompt for confirmation
 	case 'i':
 		global_flags |= MOD_I;
 		break;
-	// ?man -k:key: Specify a key definition of the form S[.s][f][,E[.e][f]] where S,
-	// ?man s, E and e are the starting column, starting character in that column,
-	// ?man ending column and the ending character of that column respectively.
-	// ?man If they are not specified, s refers to the first character of the
-	// ?man specified starting column, E refers to the last column of every line,
-	// ?man and e refers to the last character of the ending column.
-	// ?man f can be used to specify options (n, b) that only apply to this key
-	// ?man definition.
-	// ?man b is special in that it only applies to the column that it was specified after.
+	// ?man -k:str: specify option flag
 	case 'k':
 		addkeydef(EARGF(usage()), global_flags);
 		break;
-	// ?man -m: Assume sorted input, merge only.
+	// ?man -m: specify mode or limit
 	case 'm':
 		/* more or less for free, but for performance-reasons,
 		 * we should keep this flag in mind and maybe some later
@@ -454,37 +444,37 @@ main(int argc, char *argv[])
 		 * while merging large sorted files.
 		 */
 		break;
-	// ?man -n: Perform a numeric sort.
+	// ?man -n: print line numbers or counts
 	case 'n':
 		global_flags |= MOD_N;
 		break;
-	// ?man -o:outfile: Write output to outfile rather than stdout.
+	// ?man -o:file: specify output file
 	case 'o':
 		outfile = EARGF(usage());
 		break;
-	// ?man -r: Reverses the sort.
+	// ?man -r: operate recursively
 	case 'r':
 		global_flags |= MOD_R;
 		break;
 #if FEATURE_SORT_STABLE
-	// ?man -s: stabilize the sort by preserving the input order of equal lines
+	// ?man -s: silent mode or print summary
 	case 's':
 		sflag = 1;
 		break;
 #endif
-	// ?man -t:delim: Set delim as the field delimiter.
+	// ?man -t:str: sort or specify timestamp
 	case 't':
 		fieldsep = EARGF(usage());
 		if (!*fieldsep)
 			eprintf("empty delimiter\n");
 		fieldseplen = unescape(fieldsep);
 		break;
-	// ?man -u: Print equal lines only once.
+	// ?man -u: unbuffered output
 	case 'u':
 		uflag = 1;
 		break;
 #if FEATURE_SORT_BIG
-	// ?man -z: treat input as NUL-separated records
+	// ?man -z: specify option flag
 	case 'z':
 		zflag = 1;
 		break;

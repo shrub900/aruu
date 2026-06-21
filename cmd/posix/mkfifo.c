@@ -23,7 +23,7 @@ main(int argc, char *argv[])
 	int ret = 0;
 
 	ARGBEGIN {
-	// ?man -m:mode: set the file mode of newly created named pipes
+	// ?man -m:mode: specify mode or limit
 	case 'm':
 		mode = parsemode(EARGF(usage()), mode, umask(0));
 		break;

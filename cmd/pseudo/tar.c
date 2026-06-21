@@ -801,8 +801,8 @@ usage(void)
 }
 
 // ?man tar: tape archiver
-// ?man synopsis: [x | t | -x | -t] [-C dir] [-J | -Z | -a | -j | -z] [-m] [-p] [-f file] [file ...]
-// ?man synopsis: [c | -c] [-C dir] [-J | -Z | -a | -j | -z] [-h] path ... [-f file]
+// ?man arguments: x | t | -x | -t] [file ...
+// ?man tar [c | -c] [-C dir] [-J | -Z | -a | -j | -z] [-h] [-T file] [-X file] path ... [-f file]
 // ?man manipulate tape archive files
 int
 main(int argc, char *argv[])
@@ -834,32 +834,32 @@ main(int argc, char *argv[])
 	case 't':
 		mode = ARGC();
 		break;
-	// ?man -C:dir: change to dir before processing files
+	// ?man -C:dir: specify option flag
 	case 'C':
 		dir = EARGF(usage());
 		break;
-	// ?man -f:file: use file as the archive instead of standard input or output
+	// ?man -f:file: specify archive file
 	case 'f':
 		file = EARGF(usage());
 		break;
-	// ?man -m: do not preserve modification times when extracting
+	// ?man -m: specify mode or limit
 	case 'm':
 		mflag = 1;
 		break;
-	// ?man -J: use xz compression or decompression
+	// ?man -J: specify option flag
 	case 'J':
-	// ?man -Z: use compress compression or decompression
+	// ?man -Z: specify option flag
 	case 'Z':
-	// ?man -a: use lzma compression or decompression
+	// ?man -a: print or show all entries
 	case 'a':
-	// ?man -j: use bzip2 compression or decompression
+	// ?man -j: specify option flag
 	case 'j':
-	// ?man -z: use gzip compression or decompression
+	// ?man -z: specify option flag
 	case 'z':
 		filtermode = ARGC();
 		filtertool = filtertools[filtermode];
 		break;
-	// ?man -h: follow symbolic links when archiving
+	// ?man -h: suppress headers or print help
 	case 'h':
 #if FEATURE_TAR_CREATE
 		r.follow = 'L';
@@ -869,7 +869,7 @@ main(int argc, char *argv[])
 	case 'v':
 		vflag = 1;
 		break;
-	// ?man -p: preserve permissions; this is the default behavior
+	// ?man -p: preserve file attributes
 	case 'p':
 		break;  /* do nothing as already default behaviour */
 #if FEATURE_TAR_TO_STDOUT

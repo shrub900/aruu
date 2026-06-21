@@ -161,20 +161,9 @@ usage(void)
 		argv0, argv0, argv0);
 }
 
-// ?man cut: extract columns of data
-// ?man synopsis: -b list [-n] [file ...]
-// ?man synopsis: -c list [file ...]
-// ?man synopsis: -f list [-d delim] [-s] [file ...]
-// ?man cut out bytes, characters or delimited fields from each line of file and
-// ?man write to stdout.
-// ?man If no file is given or file is '-', cut reads from stdin.
-// ?man list is a comma or space separated list of numbers and ranges starting
-// ?man from 1.
-// ?man Ranges have the form 'N-M'. If N or M is missing, beginning or end
-// ?man of line is assumed.
-// ?man Numbers and ranges may be repeated, overlapping and in any order.
-// ?man Selected input is written in the same order it is read
-// ?man and is written exactly once.
+// ?man cut: cut out fields from lines
+// ?man arguments: -b list [file ...
+// ?man print selected parts of lines from files
 int
 main(int argc, char *argv[])
 {
@@ -182,30 +171,27 @@ main(int argc, char *argv[])
 	int ret = 0;
 
 	ARGBEGIN {
-	// ?man -b:list: list specifies byte | character positions.
+	// ?man -b: specify block size or base directory
 	case 'b':
-	// ?man -c:list: list specifies byte | character positions.
+	// ?man -c: print count or perform stdout action
 	case 'c':
-	// ?man -f:list: list specifies field numbers.
-	// ?man Lines not containing field delimiters are passed through, unless -s is specified.
+	// ?man -f:mode: force the operation
 	case 'f':
 		mode = ARGC();
 		parselist(EARGF(usage()));
 		break;
-	// ?man -d:delim: Use delim as field delimiter, which can be an arbitrary string.
-	// ?man Default is '\\t'.
+	// ?man -d:str: specify directory
 	case 'd':
 		delim = EARGF(usage());
 		if (!*delim)
 			eprintf("empty delimiter\n");
 		delimlen = unescape(delim);
 		break;
-	// ?man -n: Do not split multibyte characters.
-	// ?man A character is written when its last byte is selected.
+	// ?man -n: print line numbers or counts
 	case 'n':
 		nflag = 1;
 		break;
-	// ?man -s: Suppress lines not containing field delimiters.
+	// ?man -s: silent mode or print summary
 	case 's':
 		sflag = 1;
 		break;

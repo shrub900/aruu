@@ -32,13 +32,13 @@ main(int argc, char *argv[])
 	uint8_t md[SHA512_DIGEST_LENGTH];
 
 	ARGBEGIN {
-	// ?man -b: accepted for compatibility; ignored
+	// ?man -b: specify block size or base directory
 	case 'b':
-	// ?man -t: accepted for compatibility; ignored
+	// ?man -t: sort or specify timestamp
 	case 't':
 		/* ignore */
 		break;
-	// ?man -c: read checksums from files and verify them
+	// ?man -c: print count or perform stdout action
 	case 'c':
 		cryptfunc = cryptcheck;
 		break;

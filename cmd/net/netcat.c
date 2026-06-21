@@ -49,7 +49,7 @@ resolve(const char *host, const char *port, int family, int socktype,
 }
 
 // ?man netcat: read and write data across network connections
-// ?man arguments: [host] [port]
+// ?man arguments: host] [port
 // ?man arbitrary data transmission over tcp or udp
 int
 main(int argc, char *argv[])
@@ -70,15 +70,15 @@ main(int argc, char *argv[])
 
 	ARGBEGIN
 	{
-	// ?man -l: Listen for an incoming connection.
+	// ?man -l: list in long format
 	case 'l':
 		lflag = 1;
 		break;
-	// ?man -p:port: Use port as the local port.
+	// ?man -p:str: preserve file attributes
 	case 'p':
 		local_port = EARGF(usage());
 		break;
-	// ?man -u: Use UDP instead of TCP.
+	// ?man -u: unbuffered output
 	case 'u':
 		uflag = 1;
 		break;

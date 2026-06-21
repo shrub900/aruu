@@ -69,10 +69,9 @@ usage(void)
 	eprintf("usage: %s [-p] username\n", argv0);
 }
 
-// ?man login: log into the system
+// ?man login: begin terminal session
 // ?man arguments: username
-// ?man login logs the username into the system.
-// ?man It sets HOME, SHELL, USER, LOGNAME and the PATH environment variables and invokes the login shell as specified in /etc/passwd.
+// ?man authenticate and start a session on the system
 int
 main(int argc, char *argv[])
 {
@@ -84,7 +83,7 @@ main(int argc, char *argv[])
 	int pflag = 0;
 
 	ARGBEGIN {
-	// ?man -p: Preserve the environment.
+	// ?man -p: preserve file attributes
 	case 'p':
 		pflag = 1;
 		break;

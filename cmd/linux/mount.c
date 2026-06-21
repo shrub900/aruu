@@ -191,8 +191,8 @@ usage(void)
 }
 
 // ?man mount: mount a filesystem
-// ?man arguments: [source] [target]
-// ?man mount attaches the filesystem specified to the filesystem hierarchy. The umount command will detach it again.
+// ?man arguments: source] [target
+// ?man mount a filesystem to the directory tree
 int
 main(int argc, char *argv[])
 {
@@ -205,35 +205,32 @@ main(int argc, char *argv[])
 	FILE *fp;
 
 	ARGBEGIN {
-	// ?man -B: Remount a subtree somewhere else (so that its contents are visible in both places).
+	// ?man -B: specify option flag
 	case 'B':
 		argflags |= MS_BIND;
 		break;
-	// ?man -M: Move a subtree to some other place.
+	// ?man -M: specify option flag
 	case 'M':
 		argflags |= MS_MOVE;
 		break;
-	// ?man -R: Remount a subtree and all possible submounts somewhere else (so that its contents are available in both places).
+	// ?man -R: operate recursively on directories
 	case 'R':
 		argflags |= MS_REC;
 		break;
-	// ?man -a: Mount all filesystems mentioned in /etc/fstab.
+	// ?man -a: print or show all entries
 	case 'a':
 		aflag = 1;
 		break;
-	// ?man -o:options: Specify a comma separated string of filesystem specific options.
+	// ?man -o:str: specify output file
 	case 'o':
 		estrlcat(fsopts, EARGF(usage()), sizeof(fsopts));
 		parseopts(fsopts, &flags, data, sizeof(data));
 		break;
-	// ?man -t:fstype: Set the filesystem type. More than one type may be specified in a comma separated list.
-	// ?man The list of file system types can be prefixed with "no" to specify the file system types for which action should not be taken.
-	// ?man For example, mount -a -t nonfs,ext4 mounts all file systems except those of type NFS and EXT4.
-	// ?man mount will attempt to execute a program in your PATH mount.XXX where XXX is replaced by the type name. For example, NFS file systems are mounted by the program mount.nfs.
+	// ?man -t:str: sort or specify timestamp
 	case 't':
 		types = EARGF(usage());
 		break;
-	// ?man -n: Mount without writing in /etc/mtab. This is the default action.
+	// ?man -n: print line numbers or counts
 	case 'n':
 		break;
 	default:

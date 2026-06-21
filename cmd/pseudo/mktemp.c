@@ -27,11 +27,11 @@ main(int argc, char *argv[])
 	size_t len;
 
 	ARGBEGIN {
-	// ?man -d: create a temporary directory instead of a file
+	// ?man -d: specify directory
 	case 'd':
 		dflag = 1;
 		break;
-	// ?man -p:directory: use directory as the path prefix and imply -t
+	// ?man -p:dir: preserve file attributes
 	case 'p':
 		pflag = 1;
 		pdir = EARGF(usage());
@@ -40,11 +40,11 @@ main(int argc, char *argv[])
 	case 'q':
 		qflag = 1;
 		break;
-	// ?man -t: generate a path rooted in a temporary directory
+	// ?man -t: sort or specify timestamp
 	case 't':
 		tflag = 1;
 		break;
-	// ?man -u: unlink the file before exiting
+	// ?man -u: unbuffered output
 	case 'u':
 		uflag = 1;
 		break;

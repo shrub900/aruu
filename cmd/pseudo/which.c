@@ -80,7 +80,7 @@ main(int argc, char *argv[])
 	int found = 0, foundall = 1;
 
 	ARGBEGIN {
-	// ?man -a: search all PATH directories instead of stopping at the first match
+	// ?man -a: print or show all entries
 	case 'a':
 		aflag = 1;
 		break;

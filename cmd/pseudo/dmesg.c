@@ -31,9 +31,8 @@ usage(void)
 	eprintf("usage: %s [-Ccr] [-n level]\n", argv0);
 }
 
-// ?man dmesg: print or control the kernel ring buffer
-// ?man dmesg examines or controls the kernel ring buffer.
-// ?man By default it reads all the messages from the kernel ring buffer and prints them to stdout.
+// ?man dmesg: print kernel ring buffer
+// ?man display or control the kernel ring buffer messages
 int
 main(int argc, char *argv[])
 {
@@ -43,20 +42,19 @@ main(int argc, char *argv[])
 	long level;
 
 	ARGBEGIN {
-	// ?man -C: Clear the ring buffer.
+	// ?man -C: specify option flag
 	case 'C':
 		if (clear_dmesg() < 0)
 			eprintf("clear_dmesg:");
 		return 0;
-	// ?man -c: Clear the ring buffer after printing its contents.
+	// ?man -c: print count or perform stdout action
 	case 'c':
 		cflag = 1;
 		break;
-	// ?man -r: Print the raw message buffer.
+	// ?man -r: operate recursively
 	case 'r':
 		break;
-	// ?man -n:level: Set the console level.
-	// ?man The log levels are defined in the file include/linux/kern_levels.h.
+	// ?man -n:num: print line numbers or counts
 	case 'n':
 		level = estrtol(EARGF(usage()), 10);
 		if (set_console_level(level) < 0)

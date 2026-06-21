@@ -1421,7 +1421,7 @@ usage(void)
 }
 
 // ?man find: search for files
-// ?man arguments: path ... [expression ...]
+// ?man arguments: path ... [expression ...
 // ?man search for files in a directory hierarchy
 int
 main(int argc, char **argv)
@@ -1434,12 +1434,12 @@ main(int argc, char **argv)
 	gflags.mindepth = -1;
 
 	ARGBEGIN {
-	// ?man -H: dereference symbolic links given on the command line
+	// ?man -H: specify option flag
 	case 'H':
 		gflags.h = 1;
 		gflags.l = 0;
 		break;
-	// ?man -L: dereference all symbolic links encountered
+	// ?man -L: specify option flag
 	case 'L':
 		gflags.l = 1;
 		gflags.h = 0;

@@ -48,28 +48,28 @@ CPPFLAGS="-Ishared -DPREFIX=\"$PREFIX\" -D_DEFAULT_SOURCE -D_GNU_SOURCE -D_NETBS
 if [ "$FEATURE_USE_BEARSSL" = "1" ]; then
 	if pkg-config --exists libbearssl 2>/dev/null; then
 		CPPFLAGS="$CPPFLAGS $(pkg-config --cflags libbearssl)"
-		LDLIBS="$LDLIBS $(pkg-config --libs libbearssl)"
+		TLS_LDLIBS="$TLS_LDLIBS $(pkg-config --libs libbearssl)"
 	elif pkg-config --exists bearssl 2>/dev/null; then
 		CPPFLAGS="$CPPFLAGS $(pkg-config --cflags bearssl)"
-		LDLIBS="$LDLIBS $(pkg-config --libs bearssl)"
+		TLS_LDLIBS="$TLS_LDLIBS $(pkg-config --libs bearssl)"
 	else
-		LDLIBS="$LDLIBS -lbearssl"
+		TLS_LDLIBS="$TLS_LDLIBS -LexternalRepos/BearSSL/build -lbearssl"
 	fi
 fi
 if [ "$FEATURE_USE_LIBRESSL" = "1" ]; then
 	if pkg-config --exists libtls 2>/dev/null; then
 		CPPFLAGS="$CPPFLAGS $(pkg-config --cflags libtls)"
-		LDLIBS="$LDLIBS $(pkg-config --libs libtls)"
+		TLS_LDLIBS="$TLS_LDLIBS $(pkg-config --libs libtls)"
 	else
-		LDLIBS="$LDLIBS -ltls"
+		TLS_LDLIBS="$TLS_LDLIBS -ltls"
 	fi
 fi
 if [ "$FEATURE_USE_OPENSSL" = "1" ]; then
 	if pkg-config --exists openssl 2>/dev/null; then
 		CPPFLAGS="$CPPFLAGS $(pkg-config --cflags openssl)"
-		LDLIBS="$LDLIBS $(pkg-config --libs openssl)"
+		TLS_LDLIBS="$TLS_LDLIBS $(pkg-config --libs openssl)"
 	else
-		LDLIBS="$LDLIBS -lssl -lcrypto"
+		TLS_LDLIBS="$TLS_LDLIBS -lssl -lcrypto"
 	fi
 fi
 unset _feature_flags
@@ -170,7 +170,7 @@ compile_c() {
 	local src="$1" obj="$2"; shift 2
 	# shellcheck disable=SC2086
 	any_newer_than "$obj" "$src" $HDR $EXTRA_HDR || return 0
-	enqueue "  CC  $obj" "$CC $CPPFLAGS $* $CFLAGS -o $obj -c $src"
+	enqueue "  CC  $obj" "$CC $* $CPPFLAGS $CFLAGS -o $obj -c $src"
 }
 
 link_bin() {
@@ -186,7 +186,11 @@ link_bin() {
 	any_newer_than "$bin" $objs || return 0
 	printf '  LD  %s\n' "$bin"
 	# shellcheck disable=SC2086
-	eval "$CC $LDFLAGS -o $bin $objs $libs $LDLIBS"
+	if [ "${bin##*/}" = "wget" ]; then
+		eval "$CC $LDFLAGS -o $bin $objs $libs $LDLIBS $TLS_LDLIBS"
+	else
+		eval "$CC $LDFLAGS -o $bin $objs $libs $LDLIBS"
+	fi
 }
 
 # writes to _objs rather than stdout so the caller avoids a subshell that
@@ -255,7 +259,7 @@ cfg_enabled() {
 			return 1
 		fi
 		case "$_var" in
-			*_[^_]*) _var=$(printf '%s' "$_var" | sed 's/_[^_]*$//') ;;
+			*_[!_]*) _var=$(printf '%s' "$_var" | sed 's/_[^_]*$//') ;;
 			*)       break ;;
 		esac
 	done
@@ -391,34 +395,28 @@ build_ar() {
 
 build_as() {
 	cfg_enabled BUILD_DEV_AS || return 0
-	local dir=cmd/dev/as
-	objs_for "$dir" "" "-I$dir -Ishared"
-	link_bin "$dir/as" $_objs -- $LIB
+	local dir="cmd/dev/as"
+	local flags="-Icmd/dev/xcutil -I$dir -Ishared"
+	local objs=""
+	objs_for "cmd/dev/xcutil" "" "$flags"
+	objs="$objs $_objs"
+	objs_for "$dir" "" "$flags"
+	objs="$objs $_objs"
+	objs_for "$dir/arch/x64" "" "-Icmd/dev/xcutil -I$dir -I$dir/arch/x64 -Ishared"
+	objs="$objs $_objs"
+	link_bin "$dir/as" $objs -- $LIB
 }
 
-# rpath embeds $ORIGIN so the installed ld finds libaruuelf.so next to itself
 build_ld() {
 	cfg_enabled BUILD_DEV_LD || return 0
 	local dir="cmd/dev/ld"
-	local cflags="-DLD_TARGET_X86_64 -I$dir -fPIC"
-	local src
-
-	for src in "$dir"/*.c; do
-		compile_c "$src" "${src%.c}.o" $cflags
-	done
-	drain
-
-	any_newer_than shared/libaruuelf.so "$dir/elf.o" "$dir/x86_64.o" "$dir/ld_support.o" && {
-		printf '  LD    shared/libaruuelf.so\n'
-		eval "$CC $LDFLAGS -shared -o shared/libaruuelf.so $dir/elf.o $dir/x86_64.o $dir/ld_support.o"
-	}
-
-	any_newer_than "$dir/ld" "$dir/ld.o" shared/libaruuelf.so && {
-		printf '  LD    %s/ld\n' "$dir"
-		# $ORIGIN is a dynamic-linker token, not a shell variable
-		eval "$CC $LDFLAGS -o $dir/ld $dir/ld.o -Lshared -laruuelf $LIB $LDLIBS -Wl,-rpath,'\$ORIGIN/../../../shared'"
-	}
-	return 0
+	local flags="-Icmd/dev/xcutil -I$dir"
+	local objs=""
+	objs_for "cmd/dev/xcutil" "" "$flags"
+	objs="$objs $_objs"
+	objs_for "$dir" "" "$flags"
+	objs="$objs $_objs"
+	link_bin "$dir/ld" $objs -- $LIB
 }
 
 build_cc() {
@@ -443,6 +441,9 @@ build_cc() {
 }
 
 build_dev() {
+	if [ ! -f cmd/dev/config.h ]; then
+		sh cmd/dev/configure
+	fi
 	build_ar
 	build_as
 	build_ld
@@ -459,21 +460,31 @@ man_section() {
 }
 
 build_man_for() {
-	local var="$1" src="$2" base sec out
+	local var="$1" src="$2" base sec out_mdoc out_txt
 	cfg_enabled "$var" || return 0
 	[ -x scripts/mkman/mkman ] || { printf 'error: mkman not built\n' >&2; exit 1; }
+
+	grep -qE '!man|\?man' "$src" || return 0
+
 	base=${src##*/}; base=${base%.c}
 	sec=$(man_section "$src")
-	out="man/man${sec}/${base}.${sec}"
+
 	mkdir -p "man/man${sec}"
-	any_newer_than "$out" "$src" build.cfg scripts/mkman/mkman || return 0
-	printf '  MAN   %s\n' "$out"
-	scripts/mkman/mkman -config build.cfg -section "$sec" "$src" > "$out"
+	out_mdoc="man/man${sec}/${base}.${sec}"
+	out_txt="man/man${sec}/${base}.${sec}.txt"
+	if any_newer_than "$out_mdoc" "$src" config.mk scripts/mkman/mkman; then
+		printf '  MAN   %s\n' "$out_mdoc"
+		scripts/mkman/mkman -fmt mdoc -config config.mk -section "$sec" "$src" > "$out_mdoc"
+	fi
+	if any_newer_than "$out_txt" "$src" config.mk scripts/mkman/mkman; then
+		printf '  MAN   %s\n' "$out_txt"
+		scripts/mkman/mkman -fmt txt -config config.mk -section "$sec" "$src" > "$out_txt"
+	fi
 }
 
 build_man() {
 	local dir cat src base
-	if [ ! -x scripts/mkman/mkman ] || any_newer_than scripts/mkman/mkman scripts/mkman/main.go scripts/mkman/troff.go; then
+	if [ ! -x scripts/mkman/mkman ] || any_newer_than scripts/mkman/mkman scripts/mkman/main.go scripts/mkman/page.go scripts/mkman/parse.go scripts/mkman/mdoc.go; then
 		printf '  GO    scripts/mkman/mkman\n'
 		(cd scripts/mkman && go build -o mkman .)
 	fi

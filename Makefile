@@ -102,7 +102,8 @@ LIBUTILOBJ =\
 	shared/libutil/sig.o\
 	shared/libutil/net.o\
 	shared/libutil/sysinfo.o\
-	shared/libutil/tls.o
+	shared/libutil/tls.o\
+	shared/libutil/diskutil.o
 
 LIBREDLINEOBJ =\
 	shared/libredline/redline.o
@@ -272,6 +273,9 @@ PSEUDO_BIN_ALL =\
 	cmd/pseudo/yes\
 	cmd/pseudo/base64\
 	cmd/extra/b3sum\
+	cmd/extra/blkid\
+	cmd/extra/lsblk\
+	cmd/extra/fdisk\
 	cmd/dev/ar/ar\
 	cmd/dev/as/as\
 	cmd/dev/ld/ld\
@@ -448,6 +452,9 @@ BIN_xinstall_1 = cmd/pseudo/xinstall
 BIN_yes_1 = cmd/pseudo/yes
 BIN_base64_1 = cmd/pseudo/base64
 BIN_b3sum_1 = cmd/extra/b3sum
+BIN_blkid_1 = cmd/extra/blkid
+BIN_lsblk_1 = cmd/extra/lsblk
+BIN_fdisk_1 = cmd/extra/fdisk
 BIN_ar_1 = cmd/dev/ar/ar
 BIN_as_1 = cmd/dev/as/as
 BIN_ld_1 = cmd/dev/ld/ld
@@ -622,6 +629,9 @@ PSEUDO_BIN = \
 	$(BIN_yes_$(BUILD_PSEUDO_YES)) \
 	$(BIN_base64_$(BUILD_PSEUDO_BASE64)) \
 	$(BIN_b3sum_$(BUILD_PSEUDO_B3SUM)) \
+	$(BIN_blkid_$(BUILD_PSEUDO_BLKID)) \
+	$(BIN_lsblk_$(BUILD_PSEUDO_LSBLK)) \
+	$(BIN_fdisk_$(BUILD_PSEUDO_FDISK)) \
 	$(BIN_ar_$(BUILD_DEV_AR)) \
 	$(BIN_as_$(BUILD_DEV_CC)) \
 	$(BIN_ld_$(BUILD_DEV_LD)) \
@@ -693,14 +703,16 @@ man: scripts/mkman/mkman
 		if [ -f "$$src" ] && grep -qE '!man|\?man' "$$src"; then \
 			base=$$(basename $$src .c); \
 			mkdir -p man/man1; \
-			scripts/mkman/mkman -config config.mk -section 1 "$$src" > "man/man1/$$base.1"; \
+			scripts/mkman/mkman -fmt mdoc -config config.mk -section 1 "$$src" > "man/man1/$$base.1"; \
+			scripts/mkman/mkman -fmt txt -config config.mk -section 1 "$$src" > "man/man1/$$base.1.txt"; \
 		fi; \
 	done
 	@for src in $(LINUX_BIN_ALL:=.c) $(NET_BIN_ALL:=.c) $(XSI_BIN_ALL:=.c); do \
 		if [ -f "$$src" ] && grep -qE '!man|\?man' "$$src"; then \
 			base=$$(basename $$src .c); \
 			mkdir -p man/man8; \
-			scripts/mkman/mkman -config config.mk -section 8 "$$src" > "man/man8/$$base.8"; \
+			scripts/mkman/mkman -fmt mdoc -config config.mk -section 8 "$$src" > "man/man8/$$base.8"; \
+			scripts/mkman/mkman -fmt txt -config config.mk -section 8 "$$src" > "man/man8/$$base.8.txt"; \
 		fi; \
 	done
 
@@ -708,13 +720,14 @@ clean:
 	rm -f shared/libutf/*.o shared/libutil/*.o shared/libredline/*.o
 	rm -f cmd/posix/*.o cmd/posix/make/*.o cmd/posix/awk/*.o cmd/posix/sh/*.o
 	rm -f cmd/linux/*.o cmd/net/*.o cmd/xsi/*.o cmd/pseudo/*.o
-	rm -f cmd/extra/*.o cmd/dev/ar/*.o cmd/dev/ld/*.o cmd/dev/cc/*.o cmd/dev/as/*.o
+	rm -f cmd/extra/*.o cmd/dev/ar/*.o cmd/dev/ld/*.o cmd/dev/cc/*.o cmd/dev/as/*.o cmd/dev/xcutil/*.o
 	rm -f $(POSIX_BIN_ALL) $(LINUX_BIN_ALL) $(NET_BIN_ALL) $(XSI_BIN_ALL) $(PSEUDO_BIN_ALL) $(LIB)
 	rm -f cmd/posix/make/make cmd/posix/getconf.h cmd/posix/bc.c
 	rm -f cmd/posix/awk/awk cmd/posix/awk/maketab cmd/posix/awk/awkgram.tab.c cmd/posix/awk/awkgram.tab.h cmd/posix/awk/proctab.c
 	rm -f cmd/posix/sh/sh cmd/posix/sh/mknodes cmd/posix/sh/mksyntax
 	rm -f cmd/posix/sh/syntax.c cmd/posix/sh/syntax.h cmd/posix/sh/nodes.c cmd/posix/sh/nodes.h cmd/posix/sh/builtins.c cmd/posix/sh/builtins.h cmd/posix/sh/token.h
-	rm -f cmd/dev/cc/cc1 cmd/dev/cc/cpp cmd/dev/as/as shared/libaruuelf.so
+	rm -f cmd/dev/cc/cc1 cmd/dev/cc/cpp cmd/dev/as/as cmd/dev/ld/ld cmd/dev/ar/ar shared/libaruuelf.so
+	rm -f cmd/dev/config.h cmd/dev/cc/config.h cmd/dev/version.h
 	rm -rf aruu-box .box man/man1 man/man8 scripts/mkman/mkman
 
 AWKOBJ =\
@@ -814,41 +827,70 @@ cmd/posix/sh/%.o: cmd/posix/sh/%.c
 cmd/posix/sh/sh: $(SHOBJ) $(LIB)
 	$(CC) $(LDFLAGS) -o $@ $(SHOBJ) $(LIB) $(LDLIBS)
 
+cmd/net/wget: cmd/net/wget.o $(LIB)
+	$(CC) $(LDFLAGS) -o $@ cmd/net/wget.o $(LIB) $(LDLIBS) $(LDLIBS_TLS)
+
 cmd/dev/ar/ar: cmd/dev/ar/ar.o $(LIB)
 	$(CC) $(LDFLAGS) -o $@ cmd/dev/ar/ar.o $(LIB) $(LDLIBS)
 
 cmd/dev/ar/%.o: cmd/dev/ar/%.c
 	$(CC) $(CPPFLAGS) -Icmd/dev/ar $(CFLAGS) -o $@ -c $<
 
+cmd/dev/xcutil/%.o: cmd/dev/xcutil/%.c
+	$(CC) -Icmd/dev/xcutil $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
+
 LD_OBJ =\
-	cmd/dev/ld/ld.o
+	cmd/dev/xcutil/util.o\
+	cmd/dev/xcutil/table.o\
+	cmd/dev/xcutil/elfutil.o\
+	cmd/dev/xcutil/archive.o\
+	cmd/dev/ld/ld.o\
+	cmd/dev/ld/elfobj.o
 
 cmd/dev/ld/%.o: cmd/dev/ld/%.c
-	$(CC) $(CPPFLAGS) -DLD_TARGET_X86_64 -Icmd/dev/ld $(CFLAGS) -fPIC -o $@ -c $<
+	$(CC) -Icmd/dev/xcutil -Icmd/dev/ld $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
 
-shared/libaruuelf.so: cmd/dev/ld/elf.o cmd/dev/ld/x86_64.o cmd/dev/ld/ld_support.o
-	$(CC) $(LDFLAGS) -shared -o $@ cmd/dev/ld/elf.o cmd/dev/ld/x86_64.o cmd/dev/ld/ld_support.o
-
-cmd/dev/ld/ld: $(LD_OBJ) shared/libaruuelf.so $(LIB)
-	$(CC) $(LDFLAGS) -o $@ $(LD_OBJ) -Lshared -laruuelf $(LIB) $(LDLIBS) -Wl,-rpath,'$$ORIGIN/../../../shared'
+cmd/dev/ld/ld: $(LD_OBJ) $(LIB)
+	$(CC) $(LDFLAGS) -o $@ $(LD_OBJ) $(LIB) $(LDLIBS)
 
 AS_OBJ =\
+	cmd/dev/xcutil/util.o\
+	cmd/dev/xcutil/table.o\
+	cmd/dev/xcutil/elfutil.o\
+	cmd/dev/xcutil/archive.o\
 	cmd/dev/as/as.o\
-	cmd/dev/as/asm_lex.o\
-	cmd/dev/as/asm_parse.o\
-	cmd/dev/as/asm_x86_64.o\
-	cmd/dev/as/asm_elf.o
+	cmd/dev/as/as_util.o\
+	cmd/dev/as/emit_elf.o\
+	cmd/dev/as/emit_macho.o\
+	cmd/dev/as/ir_asm.o\
+	cmd/dev/as/parse_asm.o\
+	cmd/dev/as/arch/x64/asm_code.o\
+	cmd/dev/as/arch/x64/ir_asm_x64.o\
+	cmd/dev/as/arch/x64/parse_x64.o
 
-cmd/dev/as/%.o: cmd/dev/as/%.c
-	$(CC) $(CPPFLAGS) -Icmd/dev/as -Ishared $(CFLAGS) -o $@ -c $<
+# headers shared across the assembler sources. listing them as prerequisites
+# of every .o stops stale objects when a header changes (inst.h, parse_asm.h),
+# which otherwise produced silently-wrong builds
+AS_HDRS =\
+	cmd/dev/as/parse_asm.h\
+	cmd/dev/as/ir_asm.h\
+	cmd/dev/as/as_util.h\
+	cmd/dev/as/asm_code.h\
+	cmd/dev/as/arch/x64/inst.h
+
+cmd/dev/as/%.o: cmd/dev/as/%.c $(AS_HDRS) cmd/dev/config.h
+	$(CC) -Icmd/dev/xcutil -Icmd/dev/as $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
+
+cmd/dev/as/arch/x64/%.o: cmd/dev/as/arch/x64/%.c $(AS_HDRS) cmd/dev/config.h
+	$(CC) -Icmd/dev/xcutil -Icmd/dev/as -Icmd/dev/as/arch/x64 $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
 
 cmd/dev/as/as: $(AS_OBJ) $(LIB)
 	$(CC) $(LDFLAGS) -o $@ $(AS_OBJ) $(LIB) $(LDLIBS)
 
-cmd/dev/cc/driver.o: cmd/dev/cc/driver.c
+cmd/dev/cc/driver.o: cmd/dev/cc/driver.c cmd/dev/cc/config.h
 	$(CC) -Icmd/dev/cc $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
 
-cmd/dev/cc/cc: cmd/dev/cc/driver.o cmd/dev/cc/util.o $(LIB) cmd/dev/cc/cc1 cmd/dev/cc/cpp cmd/dev/as/as
+cmd/dev/cc/cc: cmd/dev/cc/driver.o cmd/dev/cc/util.o $(LIB) cmd/dev/cc/cc1 cmd/dev/cc/cpp cmd/dev/as/as cmd/dev/ld/ld
 	$(CC) $(LDFLAGS) -o $@ cmd/dev/cc/driver.o cmd/dev/cc/util.o $(LIB) $(LDLIBS)
 
 CC1_OBJ =\
@@ -899,6 +941,7 @@ cmd/dev/cc/cc1: $(CC1_OBJ) $(LIB)
 cmd/dev/cc/cpp: cmd/dev/cc/cpp.o $(CPP_OBJ) $(LIB)
 	$(CC) $(LDFLAGS) -o $@ cmd/dev/cc/cpp.o $(CPP_OBJ) $(LIB) $(LDLIBS)
 
+cmd/dev/config.h cmd/dev/cc/config.h cmd/dev/version.h: cmd/dev/configure
+	sh cmd/dev/configure
 
-
-
+$(AS_OBJ) $(LD_OBJ) $(CC1_OBJ) $(CPP_OBJ) cmd/dev/ar/ar.o cmd/dev/cc/cpp.o: cmd/dev/config.h

@@ -45,10 +45,12 @@ type XRef struct {
 }
 
 type Option struct {
-	Spec []SynopsisItem
-	Desc string
-	Body []Block
-	Key  string
+	Spec     []SynopsisItem
+	Desc     string
+	Body     []Block
+	Key      string
+	Group    string /* name shared by a mutually exclusive option set, empty if standalone */
+	Required bool   /* set by a trailing ! on the option spec */
 }
 
 type SynopsisForm struct {
@@ -64,6 +66,7 @@ const (
 	SynLiteral
 	SynOptional
 	SynPipe
+	SynRequiredGroup /* a {-a|-b|-c} mutually exclusive required group */
 )
 
 type SynopsisItem struct {

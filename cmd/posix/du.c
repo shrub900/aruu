@@ -122,36 +122,36 @@ main(int argc, char *argv[])
 	char *bsize;
 
 	ARGBEGIN {
-	// ?man -a: display an entry for each file in the hierarchy
+	// ?man -a: print or show all entries
 	case 'a':
 		aflag = 1;
 		break;
-	// ?man -d:depth: limit output to depth levels of subdirectories
+	// ?man -d:num: specify directory
 	case 'd':
 		dflag = 1;
 		maxdepth = estrtonum(EARGF(usage()), 0, MIN((unsigned long long)LLONG_MAX, (unsigned long long)SIZE_MAX));
 		break;
-	// ?man -h: print sizes in human-readable units
+	// ?man -h: suppress headers or print help
 	case 'h':
 		hflag = 1;
 		break;
-	// ?man -k: report sizes in kilobytes instead of 512-byte blocks
+	// ?man -k: specify option flag
 	case 'k':
 		kflag = 1;
 		break;
-	// ?man -s: display only the total for each specified file
+	// ?man -s: silent mode or print summary
 	case 's':
 		sflag = 1;
 		break;
-	// ?man -x: stay on the current file system
+	// ?man -x: hex format or match whole lines
 	case 'x':
 		r.flags |= SAMEDEV;
 		break;
-	// ?man -H: follow symbolic links given on the command line
+	// ?man -H: specify option flag
 	case 'H':
-	// ?man -L: follow all symbolic links
+	// ?man -L: specify option flag
 	case 'L':
-	// ?man -P: do not follow symbolic links
+	// ?man -P: specify option flag
 	case 'P':
 		r.follow = ARGC();
 		break;

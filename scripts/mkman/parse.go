@@ -10,6 +10,7 @@ import (
 )
 
 var xrefPattern = regexp.MustCompile(`^\s*([A-Za-z0-9][A-Za-z0-9+_.-]*)\((\d+[A-Za-z]*)\)\s*$`)
+var groupPattern = regexp.MustCompile(`\{([A-Za-z0-9_-]+)\}`)
 
 func parseNameSummary(line string) (string, string, bool) {
 	line = strings.TrimSpace(line)
@@ -228,8 +229,8 @@ func ParsePage(path string, cfg Config, section int, date string) (*Page, error)
 		return nil, nil
 	}
 
-	// explicit 'synopsis' forms are authoritative. for simple pages we can produce
-	// a synopsis from the parsed option specs plus the 'arguments'
+	// explicit synopsis forms are authoritative. for simple pages we can produce
+	// a synopsis from the parsed option specs plus the arguments line
 	for _, raw := range rawOptions {
 		raw.Option.Body = parseBlocks(raw.Lines, "")
 		addOption(page, optionIndex, raw.Option)
@@ -283,17 +284,50 @@ func parseOption(line string) (Option, bool) {
 	}
 
 	desc := strings.TrimSpace(strings.Join(parts[i:], ":"))
-	spec := normalizeOptionSpec(strings.Join(specParts, ":"))
+	flag, typ, group, required := splitOptionSpec(strings.Join(specParts, ":"))
+	if flag == "" {
+		return Option{}, false
+	}
+
+	rawSpec := flag
+	if typ != "" {
+		rawSpec += " " + typ
+	}
+	spec := normalizeOptionSpec(rawSpec)
 	desc = stripRepeatedSpec(spec, desc)
 	if spec == "" || desc == "" {
 		return Option{}, false
 	}
 
 	return Option{
-		Spec: parseSynopsis(spec, false).Items,
-		Desc: desc,
-		Key:  synopsisKey(spec),
+		Spec:     parseSynopsis(spec, false).Items,
+		Desc:     desc,
+		Key:      synopsisKey(spec) + "\x00" + group,
+		Group:    group,
+		Required: required,
 	}, true
+}
+
+// splitOptionSpec peels the required marker (!) and the mutual exclusion
+// group marker ({name}) off a raw option spec, leaving the bare flag and
+// its optional colon-delimited type suffix
+func splitOptionSpec(raw string) (flag, typ, group string, required bool) {
+	raw = strings.TrimSpace(raw)
+	if strings.HasSuffix(raw, "!") {
+		required = true
+		raw = raw[:len(raw)-1]
+	}
+	if m := groupPattern.FindStringSubmatchIndex(raw); m != nil {
+		group = raw[m[2]:m[3]]
+		raw = raw[:m[0]] + raw[m[1]:]
+	}
+	if idx := strings.Index(raw, ":"); idx >= 0 {
+		flag = raw[:idx]
+		typ = raw[idx+1:]
+	} else {
+		flag = raw
+	}
+	return flag, typ, group, required
 }
 
 func looksLikeOptionArg(s string) bool {
@@ -703,23 +737,77 @@ func classifyInlineLiteral(s string) Inline {
 }
 
 func synthesizeSynopsis(options []Option, args string) SynopsisForm {
-	var items []SynopsisItem
-	for _, opt := range sortedOptions(options) {
-		items = append(items, SynopsisItem{
-			Kind:     SynOptional,
-			Children: cloneSynopsisItems(opt.Spec),
+	type unit struct {
+		sortKey string
+		items   []SynopsisItem
+	}
+
+	groups := make(map[string][]Option)
+	var groupOrder []string
+	var units []unit
+
+	for _, opt := range options {
+		if opt.Group == "" {
+			if opt.Required {
+				units = append(units, unit{
+					sortKey: optionSortKey(opt),
+					items:   cloneSynopsisItems(opt.Spec),
+				})
+			} else {
+				units = append(units, unit{
+					sortKey: optionSortKey(opt),
+					items: []SynopsisItem{{
+						Kind:     SynOptional,
+						Children: cloneSynopsisItems(opt.Spec),
+					}},
+				})
+			}
+			continue
+		}
+		if _, seen := groups[opt.Group]; !seen {
+			groupOrder = append(groupOrder, opt.Group)
+		}
+		groups[opt.Group] = append(groups[opt.Group], opt)
+	}
+
+	for _, name := range groupOrder {
+		members := groups[name]
+		required := false
+		for _, m := range members {
+			if m.Required {
+				required = true
+				break
+			}
+		}
+
+		var children []SynopsisItem
+		for i, m := range members {
+			if i != 0 {
+				children = append(children, SynopsisItem{Kind: SynPipe, Text: "|"})
+			}
+			children = append(children, cloneSynopsisItems(m.Spec)...)
+		}
+
+		kind := SynOptional
+		if required {
+			kind = SynRequiredGroup
+		}
+		units = append(units, unit{
+			sortKey: optionSortKey(members[0]),
+			items:   []SynopsisItem{{Kind: kind, Children: children}},
 		})
+	}
+
+	slices.SortFunc(units, func(a, b unit) int {
+		return strings.Compare(a.sortKey, b.sortKey)
+	})
+
+	var items []SynopsisItem
+	for _, u := range units {
+		items = append(items, u.items...)
 	}
 	items = append(items, parseSynopsis(args, false).Items...)
 	return SynopsisForm{Items: items}
-}
-
-func sortedOptions(options []Option) []Option {
-	out := append([]Option(nil), options...)
-	slices.SortFunc(out, func(a, b Option) int {
-		return strings.Compare(optionSortKey(a), optionSortKey(b))
-	})
-	return out
 }
 
 func optionSortKey(opt Option) string {
@@ -796,7 +884,7 @@ func tokenizeSynopsis(raw string) []string {
 	for i := 0; i < len(raw); i++ {
 		ch := raw[i]
 		switch ch {
-		case '[', ']', '|':
+		case '[', ']', '{', '}', '|':
 			flush()
 			tokens = append(tokens, string(ch))
 		case ' ', '\t', '\n':
@@ -815,11 +903,15 @@ func parseSynopsisSeq(tokens []string, start int, explicit bool, topLevel bool) 
 
 	for i := start; i < len(tokens); i++ {
 		switch tokens[i] {
-		case "]":
+		case "]", "}":
 			return items, i
 		case "[":
 			children, end := parseSynopsisSeq(tokens, i+1, explicit, false)
 			items = append(items, SynopsisItem{Kind: SynOptional, Children: children})
+			i = end
+		case "{":
+			children, end := parseSynopsisSeq(tokens, i+1, explicit, false)
+			items = append(items, SynopsisItem{Kind: SynRequiredGroup, Children: children})
 			i = end
 		case "|":
 			items = append(items, SynopsisItem{Kind: SynPipe, Text: "|"})
@@ -845,8 +937,8 @@ func parseSynopsisSeq(tokens []string, start int, explicit bool, topLevel bool) 
 }
 
 func splitGroupedFlags(tok string) ([]SynopsisItem, bool) {
-	// We expand compacted synopsis tokens like some -abcDef into separate
-	// semantic flags so the renderer can emit a separate Fl for each one.
+	// we expand compacted synopsis tokens like some -abcDef into separate
+	// semantic flags so the renderer can emit a separate Fl for each one
 	if len(tok) < 3 || tok[0] != '-' {
 		return nil, false
 	}

@@ -263,6 +263,8 @@ usage(void)
 // ?man depmod: generate modules.dep and map files
 // ?man arguments: version
 // ?man depmod generates modules.dep containing dependency information for modprobe
+// ?man // ?man -n: dry run print results to stdout instead of writing files
+// ?man // ?man -b basedir: use basedir as prefix for module directories
 int
 main(int argc, char *argv[])
 {
@@ -279,11 +281,11 @@ main(int argc, char *argv[])
 	FILE *f_dep, *f_alias, *f_sym;
 
 	ARGBEGIN {
-	// ?man -n: Dry run; print results to stdout instead of writing files.
+	// ?man -n: specify n option
 	case 'n':
 		nflag = 1;
 		break;
-	// ?man -b:dir: Use dir as the prefix for module directories.
+	// ?man -b:dir: specify b option
 	case 'b':
 		basedir = EARGF(usage());
 		break;

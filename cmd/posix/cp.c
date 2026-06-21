@@ -25,7 +25,7 @@ main(int argc, char *argv[])
 	case 'i':
 		cp_iflag = 1;
 		break;
-	// ?man -a: preserve devices, sockets, and fifos; implies -pPR
+	// ?man -a: archive mode; equivalent to -dpR
 	case 'a':
 		cp_follow = 'P';
 		cp_aflag = cp_pflag = cp_rflag = 1;
@@ -34,7 +34,7 @@ main(int argc, char *argv[])
 	case 'f':
 		cp_fflag = 1;
 		break;
-	// ?man -p: preserve mode, timestamps, and ownership
+	// ?man -p: preserve file attributes
 	case 'p':
 		cp_pflag = 1;
 		break;
@@ -44,15 +44,15 @@ main(int argc, char *argv[])
 	case 'R':
 		cp_rflag = 1;
 		break;
-	// ?man -v: write each copied source and destination path
+	// ?man -v: verbose mode; show progress
 	case 'v':
 		cp_vflag = 1;
 		break;
-	// ?man -H: dereference source arguments that are symbolic links
+	// ?man -H: specify option flag
 	case 'H':
-	// ?man -L: dereference all symbolic links
+	// ?man -L: specify option flag
 	case 'L':
-	// ?man -P: preserve symbolic links
+	// ?man -P: specify option flag
 	case 'P':
 		cp_follow = ARGC();
 		break;

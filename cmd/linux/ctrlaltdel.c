@@ -15,23 +15,20 @@ usage(void)
 	eprintf("usage: %s -h | -s\n", argv0);
 }
 
-// ?man ctrlaltdel: toggle Ctrl-Alt-Del behaviour
-// ?man synopsis: -h
-// ?man synopsis: -s
-// ?man ctrlaltdel toggles the function of Ctrl-Alt-Del based on the two choices given in linux/kernel/sys.c.
-// ?man Hard reset reboots the computer immediately without calling sync.
-// ?man Soft reset sends SIGINT to init.
+// ?man ctrlaltdel: set ctrl-alt-del function
+// ?man arguments: -h | -s
+// ?man set the behavior of the ctrl-alt-del key combination
 int
 main(int argc, char *argv[])
 {
 	int hflag = 0, sflag = 0, cmd;
 
 	ARGBEGIN {
-	// ?man -h: Set to hard reset.
+	// ?man -h: suppress headers or print help
 	case 'h':
 		hflag = 1;
 		break;
-	// ?man -s: Set to soft reset.
+	// ?man -s: silent mode or print summary
 	case 's':
 		sflag = 1;
 		break;
