@@ -1,10 +1,18 @@
 /* See LICENSE file for copyright and license details. */
 
+#if defined(__x86_64__) && (defined(__clang__) || (defined(__GNUC__) && !defined(__TINYC__)))
+#define BLAKE3_X86_SIMD 1
+#else
+#define BLAKE3_X86_SIMD 0
+#endif
+
 #include "util.h"
 #include "arg.h"
 
 #include <assert.h>
+#if BLAKE3_X86_SIMD
 #include <immintrin.h>
+#endif
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +25,7 @@
 #define BLAKE3_CHUNK_LEN      1024
 #define BLAKE3_MAX_DEPTH      54
 
-#if defined(__x86_64__)
+#if BLAKE3_X86_SIMD
 #define MAX_SIMD_DEGREE 16
 #else
 #define MAX_SIMD_DEGREE 1
@@ -123,7 +131,7 @@ counter_high(uint64_t counter)
 }
 
 /* forward declarations */
-#if defined(__x86_64__)
+#if BLAKE3_X86_SIMD
 void blake3_compress_in_place_sse2(uint32_t cv[8], const uint8_t block[BLAKE3_BLOCK_LEN], uint8_t block_len, uint64_t counter, uint8_t flags);
 void blake3_compress_xof_sse2(const uint32_t cv[8], const uint8_t block[BLAKE3_BLOCK_LEN], uint8_t block_len, uint64_t counter, uint8_t flags, uint8_t out[64]);
 void blake3_hash_many_sse2(const uint8_t *const *inputs, size_t num_inputs, size_t blocks, const uint32_t key[8], uint64_t counter, int increment_counter, uint8_t flags, uint8_t flags_start, uint8_t flags_end, uint8_t *out);
@@ -317,7 +325,7 @@ enum {
 static int blake3_cpu_features = 0;
 static int blake3_cpu_detected = 0;
 
-#if defined(__x86_64__)
+#if BLAKE3_X86_SIMD
 #include <cpuid.h>
 
 static void
@@ -339,7 +347,7 @@ blake3_xgetbv(void)
 static void
 blake3_detect_cpu_features(void)
 {
-#if defined(__x86_64__)
+#if BLAKE3_X86_SIMD
 	enum { EAX, EBX, ECX, EDX };
 	uint32_t regs[4];
 	uint64_t xcr0;
@@ -369,7 +377,7 @@ blake3_detect_cpu_features(void)
 	blake3_cpu_detected = 1;
 }
 
-#if defined(__x86_64__)
+#if BLAKE3_X86_SIMD
 __attribute__((constructor))
 static void
 blake3_init_cpu(void)
@@ -379,9 +387,13 @@ blake3_init_cpu(void)
 }
 #endif
 
-#if defined(__x86_64__)
+#if BLAKE3_X86_SIMD
+#if defined(__clang__)
+#pragma clang attribute push (__attribute__((target("sse2"))), apply_to=function)
+#elif defined(__GNUC__)
 #pragma GCC push_options
 #pragma GCC target("sse2")
+#endif
 #define DEGREE_SSE2 4
 
 #define _mm_shuffle_ps2(a, b, c)                                               \
@@ -995,10 +1007,18 @@ blake3_hash_many_sse2(const uint8_t *const *inputs, size_t num_inputs, size_t bl
 		out_bytes = &out_bytes[BLAKE3_OUT_LEN];
 	}
 }
+#if defined(__clang__)
+#pragma clang attribute pop
+#elif defined(__GNUC__)
 #pragma GCC pop_options
+#endif
 
+#if defined(__clang__)
+#pragma clang attribute push (__attribute__((target("sse4.1"))), apply_to=function)
+#elif defined(__GNUC__)
 #pragma GCC push_options
 #pragma GCC target("sse4.1")
+#endif
 #define DEGREE_SSE41 4
 
 #define _mm_shuffle_ps2_sse41(a, b, c)                                         \
@@ -1601,10 +1621,18 @@ blake3_hash_many_sse41(const uint8_t *const *inputs, size_t num_inputs, size_t b
 		out_bytes = &out_bytes[BLAKE3_OUT_LEN];
 	}
 }
+#if defined(__clang__)
+#pragma clang attribute pop
+#elif defined(__GNUC__)
 #pragma GCC pop_options
+#endif
 
+#if defined(__clang__)
+#pragma clang attribute push (__attribute__((target("avx2"))), apply_to=function)
+#elif defined(__GNUC__)
 #pragma GCC push_options
 #pragma GCC target("avx2")
+#endif
 #define DEGREE_AVX2 8
 
 static inline __m256i
@@ -1952,10 +1980,18 @@ blake3_hash_many_avx2(const uint8_t *const *inputs, size_t num_inputs, size_t bl
 	}
 	blake3_hash_many_sse41(inputs, num_inputs, blocks, key, counter, increment_counter, flags, flags_start, flags_end, out_bytes);
 }
+#if defined(__clang__)
+#pragma clang attribute pop
+#elif defined(__GNUC__)
 #pragma GCC pop_options
+#endif
 
+#if defined(__clang__)
+#pragma clang attribute push (__attribute__((target("avx512f,avx512vl"))), apply_to=function)
+#elif defined(__GNUC__)
 #pragma GCC push_options
 #pragma GCC target("avx512f,avx512vl")
+#endif
 static inline __m128i
 loadu_128_avx512(const uint8_t src[16])
 {
@@ -3215,14 +3251,18 @@ blake3_hash_many_avx512(const uint8_t *const *inputs, size_t num_inputs, size_t 
 		out_bytes = &out_bytes[BLAKE3_OUT_LEN];
 	}
 }
+#if defined(__clang__)
+#pragma clang attribute pop
+#elif defined(__GNUC__)
 #pragma GCC pop_options
+#endif
 #endif
 
 /* dispatch functions */
 void
 blake3_compress_in_place(uint32_t cv[8], const uint8_t block[BLAKE3_BLOCK_LEN], uint8_t block_len, uint64_t counter, uint8_t flags)
 {
-#if defined(__x86_64__)
+#if BLAKE3_X86_SIMD
 	if (!blake3_cpu_detected)
 		blake3_detect_cpu_features();
 	if (blake3_cpu_features & AVX512) {
@@ -3244,7 +3284,7 @@ blake3_compress_in_place(uint32_t cv[8], const uint8_t block[BLAKE3_BLOCK_LEN], 
 void
 blake3_compress_xof(const uint32_t cv[8], const uint8_t block[BLAKE3_BLOCK_LEN], uint8_t block_len, uint64_t counter, uint8_t flags, uint8_t out[64])
 {
-#if defined(__x86_64__)
+#if BLAKE3_X86_SIMD
 	if (!blake3_cpu_detected)
 		blake3_detect_cpu_features();
 	if (blake3_cpu_features & AVX512) {
@@ -3266,7 +3306,7 @@ blake3_compress_xof(const uint32_t cv[8], const uint8_t block[BLAKE3_BLOCK_LEN],
 void
 blake3_hash_many(const uint8_t *const *inputs, size_t num_inputs, size_t blocks, const uint32_t key[8], uint64_t counter, int increment_counter, uint8_t flags, uint8_t flags_start, uint8_t flags_end, uint8_t *out)
 {
-#if defined(__x86_64__)
+#if BLAKE3_X86_SIMD
 	if (!blake3_cpu_detected)
 		blake3_detect_cpu_features();
 	if (blake3_cpu_features & AVX512) {
@@ -3292,7 +3332,7 @@ blake3_hash_many(const uint8_t *const *inputs, size_t num_inputs, size_t blocks,
 size_t
 blake3_simd_degree(void)
 {
-#if defined(__x86_64__)
+#if BLAKE3_X86_SIMD
 	if (!blake3_cpu_detected)
 		blake3_detect_cpu_features();
 	if (blake3_cpu_features & AVX512)
